@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { PlayerController } from '../core/controller/PlayerController';
 import { ObjectManager } from '../core/managers/ObjectManager';
+import { ParticleManager } from '../core/managers/ParticleManager';
 import { Ground } from '../core/objects/Ground';
 import { Suspense } from 'react';
 
@@ -24,6 +25,7 @@ export const GameScene = () => {
                 <Suspense fallback={null}>
                     <PlayerController />
                     <ObjectManager />
+                    <ParticleManager />
                     <Ground />
                 </Suspense>
             </Canvas>
