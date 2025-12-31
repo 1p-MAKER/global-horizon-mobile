@@ -1,39 +1,46 @@
 import { useRef, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
+import { gameStore } from '../store/GameStore';
 
 // Configuration
-const LANE_WIDTH = 2; // Width of each lane
-const SPEED = 10; // Units per second
-const LERP_SPEED = 10; // For smooth lane changing
+const LANE_WIDTH = 2;
+const LERP_SPEED = 10;
 
 export const PlayerController = () => {
     const groupRef = useRef<any>(null);
-    const [targetLane, setTargetLane] = useState(0); // -1, 0, 1
+    const [targetLane, setTargetLane] = useState(0);
     const { camera } = useThree();
 
-    // Input Handling: Swipe Detection
+    // Input Handling: Swipe & Tap
     useEffect(() => {
         let startX = 0;
+
+
         const handleTouchStart = (e: TouchEvent) => {
             startX = e.touches[0].clientX;
         };
+
         const handleTouchEnd = (e: TouchEvent) => {
             const endX = e.changedTouches[0].clientX;
             const diff = endX - startX;
-            if (Math.abs(diff) > 50) { // Threshold
-                // Swipe Right (diff > 0) -> Move Right (+1)
-                // Swipe Left (diff < 0) -> Move Left (-1)
+
+            if (Math.abs(diff) > 50) {
                 if (diff > 0) changeLane(1);
                 else changeLane(-1);
+            } else {
+                // Tap detected (Attack)
+                handleAttack();
             }
         };
 
-        // Keyboard support for testing
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowLeft') changeLane(-1);
             if (e.key === 'ArrowRight') changeLane(1);
+            if (e.key === ' ' || e.key === 'Enter') handleAttack();
         };
+
+
 
         window.addEventListener('touchstart', handleTouchStart);
         window.addEventListener('touchend', handleTouchEnd);
@@ -44,53 +51,62 @@ export const PlayerController = () => {
             window.removeEventListener('touchend', handleTouchEnd);
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, []); // Removed dependency on targetLane to avoid re-binding listeners constantly, forcing functional update in setTargetLane
+    }, []);
 
     const changeLane = (direction: number) => {
-        // limit lanes to -1, 0, 1
         setTargetLane(prev => {
             const next = prev + direction;
             if (next < -1) return -1;
             if (next > 1) return 1;
+            // Update store lane immediately for collision checks
+            gameStore.playerLane = next;
             return next;
         });
+    };
+
+    const handleAttack = () => {
+        gameStore.isAttacking = true;
+        // Reset attack flag next frame or after short delay is handled in ObjectManager or logic loop usually,
+        // but let's simple reset it with setTimeout for now or handle in useFrame.
+        // Better: let useFrame reset it after processing? Or set a frame counter.
+        // Simplest: Time limit.
+        setTimeout(() => { gameStore.isAttacking = false; }, 100);
     };
 
     useFrame((_state, delta) => {
         if (!groupRef.current) return;
 
-        // 1. Move Forward (Negative Z)
-        groupRef.current.position.z -= SPEED * delta;
+        // 1. Move Forward
+        groupRef.current.position.z -= gameStore.speed * delta;
 
-        // 2. Smooth Lane Switching (Lerp X)
+        // Sync to Store
+        gameStore.playerZ = groupRef.current.position.z;
+        gameStore.playerLane = targetLane; // Sync lane (use state value which is cleaner lane index)
+
+        // 2. Smooth Lane Switching
         const targetX = targetLane * LANE_WIDTH;
         groupRef.current.position.x += (targetX - groupRef.current.position.x) * LERP_SPEED * delta;
 
         // 3. Camera Follow
-        // Camera position should trail behind the player
-        const cameraOffset = new Vector3(0, 3, 5); // Up and Behind
-        const smoothCamera = true;
+        const cameraOffset = new Vector3(0, 3, 5);
+        const targetCamPos = groupRef.current.position.clone().add(cameraOffset);
+        camera.position.lerp(targetCamPos, 5 * delta);
+        camera.lookAt(groupRef.current.position.x, groupRef.current.position.y, groupRef.current.position.z - 5);
 
-        if (smoothCamera) {
-            const targetCamPos = groupRef.current.position.clone().add(cameraOffset);
-            // We only want to follow Z smoothly, X should probably follow strictly or smoothly too.
-            // Let's keep it full follow for now.
-            camera.position.lerp(targetCamPos, 5 * delta);
-            camera.lookAt(groupRef.current.position.x, groupRef.current.position.y, groupRef.current.position.z - 5); // Look slightly ahead
+        // Visual feedback for attack (pulse scale)
+        if (gameStore.isAttacking) {
+            groupRef.current.scale.set(1.2, 1.2, 1.2);
         } else {
-            camera.position.copy(groupRef.current.position).add(cameraOffset);
-            camera.lookAt(groupRef.current.position);
+            groupRef.current.scale.lerp(new Vector3(1, 1, 1), 10 * delta);
         }
     });
 
     return (
         <group ref={groupRef} position={[0, 0.5, 0]}>
-            {/* Visual Representation of Player (Cube for now) - ASMR Glass/Crystal later */}
             <mesh>
                 <boxGeometry args={[1, 1, 1]} />
                 <meshStandardMaterial color="#00dcb4" emissive="#00dcb4" emissiveIntensity={0.5} roughness={0.1} metalness={0.9} />
             </mesh>
-            {/* Add a light attached to player to illuminate surroundings */}
             <pointLight position={[0, 2, -2]} intensity={2} distance={10} decay={2} color="#ffffff" />
         </group>
     );
