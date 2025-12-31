@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { DestructibleObject } from '../objects/DestructibleObject';
-import { gameStore } from '../store/GameStore';
+import { gameStore, notifyStoreUpdate } from '../store/GameStore';
 import { soundManager } from '../managers/SoundManager';
-// import { ParticleManager } ... No, used via global for now to avoid Context overhead for this prototype
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 interface GameObject {
     id: string;
@@ -17,7 +17,6 @@ const SPAWN_INTERVAL = 10;
 export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
-    const combo = useRef(0);
     const lastHitTime = useRef(0);
 
     // Initial Spawn
@@ -44,9 +43,9 @@ export const ObjectManager = () => {
         setObjects(prev => prev.filter(obj => obj.position[2] < playerZ + 5));
 
         // 3. Combo Decay
-        if (state.clock.elapsedTime - lastHitTime.current > 2.0 && combo.current > 0) {
-            combo.current = 0; // Reset combo if too slow
-            // console.log("Combo Reset");
+        if (state.clock.elapsedTime - lastHitTime.current > 2.0 && gameStore.combo > 0) {
+            gameStore.combo = 0; // Reset combo if too slow
+            notifyStoreUpdate();
         }
     });
 
@@ -61,36 +60,35 @@ export const ObjectManager = () => {
     };
 
     const handleHit = (id: string) => {
-        // Find object for type and pos info
         const obj = objects.find(o => o.id === id);
         if (!obj) return;
 
-        // Visuals: Remove object
         setObjects(prev => prev.filter(o => o.id !== id));
 
-        // Logic: Score & Combo
-        combo.current += 1;
-        lastHitTime.current = performance.now() / 1000; // approximation or use existing clock ref if passed
-        // We'll just set it to current time roughly. useFrame uses state.clock.elapsedTime, 
-        // but performance.now is fine if we sync logic. Let's use Date.now() / 1000 for simplicity or assume call happens in frame.
-        // Better: Inside handleHit, we don't have frame state.
+        gameStore.combo += 1;
+        lastHitTime.current = performance.now() / 1000;
 
-        gameStore.score += 100 * (1 + Math.floor(combo.current / 5)); // Bonus
+        gameStore.score += 100 * (1 + Math.floor(gameStore.combo / 5));
 
-        // Audio
-        // Pitch increases with combo, capped at 2.0
-        const pitch = Math.min(1.0 + (combo.current * 0.1), 2.0);
+        // Increase speed slightly
+        gameStore.speed += 0.05;
+
+        notifyStoreUpdate();
+
+        // Haptics
+        Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
+
+        const pitch = Math.min(1.0 + (gameStore.combo * 0.1), 2.0);
 
         if (obj.type === 'glass') {
             soundManager.playGlassBreak(pitch);
-            // Particles
             if ((window as any).spawnShatterParticles) {
-                (window as any).spawnShatterParticles(obj.position, '#aaddff', 15); // Blue-ish
+                (window as any).spawnShatterParticles(obj.position, '#aaddff', 15);
             }
         } else {
             soundManager.playIceBreak(pitch);
             if ((window as any).spawnShatterParticles) {
-                (window as any).spawnShatterParticles(obj.position, '#ffffff', 20); // White
+                (window as any).spawnShatterParticles(obj.position, '#ffffff', 20);
             }
         }
     };

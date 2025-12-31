@@ -4,7 +4,9 @@ export const gameStore = {
     playerLane: 0,
     isAttacking: false, // True for a frame or few when tapping
     score: 0,
+    combo: 0,
     speed: 10, // Units per second
+    isGameOver: false,
 };
 
 // Listeners for events (like score updates) to sync with React UI
@@ -13,7 +15,9 @@ const listeners: Set<Listener> = new Set();
 
 export const subscribeToStore = (listener: Listener) => {
     listeners.add(listener);
-    return () => listeners.delete(listener);
+    return () => {
+        listeners.delete(listener);
+    };
 };
 
 export const notifyStoreUpdate = () => {

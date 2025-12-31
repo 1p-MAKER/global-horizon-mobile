@@ -5,6 +5,8 @@
   padding: 0;
   text-align: center;
   overflow: hidden;
+  background-color: #000;
+  font-family: 'Outfit', sans-serif;
 }
 
 .ui-overlay {
@@ -14,42 +16,52 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
   color: white;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.start-button {
+  background: #00dcb4;
+  color: #000;
+  border: none;
+  padding: 1rem 4rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 220, 180, 0.4);
+  letter-spacing: 0.1em;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.start-button:active {
+  transform: scale(0.95);
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.result-card {
+  background: #1a1a2e;
+  padding: 3rem;
+  border-radius: 20px;
+  border: 2px solid #00dcb4;
+  color: white;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 220, 180, 0.2);
 }
 
 .card {
   padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

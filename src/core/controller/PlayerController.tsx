@@ -74,7 +74,7 @@ export const PlayerController = () => {
     };
 
     useFrame((_state, delta) => {
-        if (!groupRef.current) return;
+        if (!groupRef.current || gameStore.isGameOver) return;
 
         // 1. Move Forward
         groupRef.current.position.z -= gameStore.speed * delta;

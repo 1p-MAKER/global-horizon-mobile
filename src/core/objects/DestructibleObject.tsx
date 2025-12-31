@@ -33,17 +33,16 @@ export const DestructibleObject = ({ id, position, type, onHit }: DestructibleOb
         // Lane check
         const myLane = Math.round(position[0] / 2); // Lane width 2.
 
-        if (Math.abs(playerZ - myZ) < 1.5 && gameStore.playerLane === myLane) {
+        if (!gameStore.isGameOver && Math.abs(playerZ - myZ) < 1.0 && gameStore.playerLane === myLane) {
             // In range.
             // Check if attacking
             if (gameStore.isAttacking) {
                 // HIT!
                 onHit(id);
-            } else {
-                // MISS / CRASH logic (later)
-                // For now, allow pass-through or auto-break?
-                // Spec says "Timing tap". If not tapped, it might be a miss.
-                // Let's implement visual "Hit" only for now.
+            } else if (playerZ < myZ) {
+                // CRASH! If player has reached the object and is NOT attacking
+                gameStore.isGameOver = true;
+                import('../store/GameStore').then(m => m.notifyStoreUpdate());
             }
         }
     });
