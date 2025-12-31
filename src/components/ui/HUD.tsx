@@ -5,12 +5,14 @@ import { useTranslation } from 'react-i18next';
 export const HUD = () => {
     const [score, setScore] = useState(gameStore.score);
     const [combo, setCombo] = useState(gameStore.combo);
+    const [isFever, setIsFever] = useState(gameStore.isFever);
     const { t } = useTranslation();
 
     useEffect(() => {
         return subscribeToStore(() => {
             setScore(gameStore.score);
             setCombo(gameStore.combo);
+            setIsFever(gameStore.isFever);
         });
     }, []);
 
@@ -42,13 +44,19 @@ export const HUD = () => {
                     <div style={{ fontSize: '2rem', fontWeight: 800 }}>{score.toLocaleString()}</div>
                 </div>
 
+                {isFever && (
+                    <div className="fever-indicator">
+                        FEVER MODE
+                    </div>
+                )}
+
                 {combo > 1 && (
                     <div key={combo} style={{
                         textAlign: 'right',
                         animation: 'pop 0.3s ease-out'
                     }}>
                         <div style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase' }}>Combo</div>
-                        <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#00dcb4' }}>x{combo}</div>
+                        <div style={{ fontSize: '2.5rem', fontWeight: 900, color: isFever ? '#ff00ff' : '#00dcb4' }}>x{combo}</div>
                     </div>
                 )}
             </div>
@@ -56,7 +64,23 @@ export const HUD = () => {
             <style>{`
                 @keyframes pop {
                     0% { transform: scale(1.5); color: #fff; }
-                    100% { transform: scale(1); color: #00dcb4; }
+                    100% { transform: scale(1); color: ${isFever ? '#ff00ff' : '#00dcb4'}; }
+                }
+                .fever-indicator {
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #ff00ff;
+                    color: white;
+                    padding: 5px 20px;
+                    border-radius: 20px;
+                    font-weight: 900;
+                    letter-spacing: 2px;
+                    animation: pulse 0.5s infinite alternate;
+                }
+                @keyframes pulse {
+                    from { transform: translateX(-50%) scale(1); opacity: 0.8; }
+                    to { transform: translateX(-50%) scale(1.1); opacity: 1; }
                 }
             `}</style>
         </div>

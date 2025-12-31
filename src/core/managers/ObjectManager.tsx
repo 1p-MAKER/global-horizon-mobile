@@ -9,6 +9,7 @@ interface GameObject {
     id: string;
     position: [number, number, number];
     type: 'glass' | 'ice';
+    scale: number;
 }
 
 const SPAWN_DISTANCE = 50;
@@ -18,6 +19,7 @@ export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
+    const slowMoTimer = useRef(0);
 
     // Initial Spawn
     useEffect(() => {
@@ -29,7 +31,7 @@ export const ObjectManager = () => {
         lastSpawnZ.current = -5 * SPAWN_INTERVAL;
     }, []);
 
-    useFrame((state) => {
+    useFrame((state, delta) => {
         // 1. Spawning
         const playerZ = gameStore.playerZ;
         if (playerZ < lastSpawnZ.current + SPAWN_DISTANCE) {
@@ -44,18 +46,33 @@ export const ObjectManager = () => {
 
         // 3. Combo Decay
         if (state.clock.elapsedTime - lastHitTime.current > 2.0 && gameStore.combo > 0) {
-            gameStore.combo = 0; // Reset combo if too slow
+            gameStore.combo = 0;
+            gameStore.isFever = false;
             notifyStoreUpdate();
+        }
+
+        // 4. Slow Motion Control
+        if (slowMoTimer.current > 0) {
+            slowMoTimer.current -= delta * (1 / gameStore.timeScale); // Progress timer in real-time
+            if (slowMoTimer.current <= 0) {
+                gameStore.timeScale = 1.0;
+                notifyStoreUpdate();
+            } else {
+                // Smooth transition back or stay at target scale
+                gameStore.timeScale = 0.2;
+            }
         }
     });
 
     const createObject = (z: number): GameObject => {
         const lanes = [-1, 0, 1];
         const lane = lanes[Math.floor(Math.random() * lanes.length)];
+        const isLarge = Math.random() > 0.8;
         return {
             id: Math.random().toString(36).substr(2, 9),
-            position: [lane * 2, 1, z],
-            type: Math.random() > 0.5 ? 'glass' : 'ice'
+            position: [lane * 2, isLarge ? 2 : 1, z],
+            type: Math.random() > 0.5 ? 'glass' : 'ice',
+            scale: isLarge ? 2 : 1
         };
     };
 
@@ -68,27 +85,44 @@ export const ObjectManager = () => {
         gameStore.combo += 1;
         lastHitTime.current = performance.now() / 1000;
 
-        gameStore.score += 100 * (1 + Math.floor(gameStore.combo / 5));
+        // Fever check
+        if (gameStore.combo >= 10 && !gameStore.isFever) {
+            gameStore.isFever = true;
+            Haptics.notification({ type: ImpactStyle.Heavy as any }).catch(() => { });
+        }
 
-        // Increase speed slightly
-        gameStore.speed += 0.05;
+        gameStore.score += 100 * (gameStore.isFever ? 2 : 1) * (1 + Math.floor(gameStore.combo / 5));
+
+        // Slow motion on Large objects
+        if (obj.scale > 1.5) {
+            gameStore.timeScale = 0.2;
+            slowMoTimer.current = 0.5; // Half second slow mo
+            notifyStoreUpdate();
+        }
+
+        // Speed increase (unless in slow mo)
+        if (slowMoTimer.current <= 0) {
+            gameStore.speed += 0.05 * (gameStore.isFever ? 1.5 : 1);
+        }
 
         notifyStoreUpdate();
 
         // Haptics
-        Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
+        Haptics.impact({ style: obj.scale > 1.5 ? ImpactStyle.Heavy : ImpactStyle.Medium }).catch(() => { });
 
-        const pitch = Math.min(1.0 + (gameStore.combo * 0.1), 2.0);
+        const pitch = Math.min(1.0 + (gameStore.combo * 0.1), 3.0);
+
+        const particleCount = (obj.scale > 1.5 ? 50 : 15) * (gameStore.isFever ? 2 : 1);
 
         if (obj.type === 'glass') {
             soundManager.playGlassBreak(pitch);
             if ((window as any).spawnShatterParticles) {
-                (window as any).spawnShatterParticles(obj.position, '#aaddff', 15);
+                (window as any).spawnShatterParticles(obj.position, gameStore.isFever ? '#ff00ff' : '#aaddff', particleCount);
             }
         } else {
             soundManager.playIceBreak(pitch);
             if ((window as any).spawnShatterParticles) {
-                (window as any).spawnShatterParticles(obj.position, '#ffffff', 20);
+                (window as any).spawnShatterParticles(obj.position, gameStore.isFever ? '#ffff00' : '#ffffff', particleCount);
             }
         }
     };
@@ -102,6 +136,7 @@ export const ObjectManager = () => {
                     position={obj.position}
                     type={obj.type}
                     onHit={handleHit}
+                    scale={obj.scale}
                 />
             ))}
         </group>

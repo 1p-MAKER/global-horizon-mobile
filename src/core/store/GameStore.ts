@@ -6,6 +6,8 @@ export const gameStore = {
     score: 0,
     combo: 0,
     speed: 10, // Units per second
+    timeScale: 1.0,
+    isFever: false,
     isGameOver: false,
 };
 

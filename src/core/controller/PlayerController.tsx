@@ -76,28 +76,30 @@ export const PlayerController = () => {
     useFrame((_state, delta) => {
         if (!groupRef.current || gameStore.isGameOver) return;
 
+        const scaledDelta = delta * gameStore.timeScale;
+
         // 1. Move Forward
-        groupRef.current.position.z -= gameStore.speed * delta;
+        groupRef.current.position.z -= gameStore.speed * scaledDelta;
 
         // Sync to Store
         gameStore.playerZ = groupRef.current.position.z;
-        gameStore.playerLane = targetLane; // Sync lane (use state value which is cleaner lane index)
+        gameStore.playerLane = targetLane;
 
         // 2. Smooth Lane Switching
         const targetX = targetLane * LANE_WIDTH;
-        groupRef.current.position.x += (targetX - groupRef.current.position.x) * LERP_SPEED * delta;
+        groupRef.current.position.x += (targetX - groupRef.current.position.x) * LERP_SPEED * scaledDelta;
 
         // 3. Camera Follow
         const cameraOffset = new Vector3(0, 3, 5);
         const targetCamPos = groupRef.current.position.clone().add(cameraOffset);
-        camera.position.lerp(targetCamPos, 5 * delta);
+        camera.position.lerp(targetCamPos, 5 * scaledDelta);
         camera.lookAt(groupRef.current.position.x, groupRef.current.position.y, groupRef.current.position.z - 5);
 
         // Visual feedback for attack (pulse scale)
         if (gameStore.isAttacking) {
             groupRef.current.scale.set(1.2, 1.2, 1.2);
         } else {
-            groupRef.current.scale.lerp(new Vector3(1, 1, 1), 10 * delta);
+            groupRef.current.scale.lerp(new Vector3(1, 1, 1), 10 * scaledDelta);
         }
     });
 

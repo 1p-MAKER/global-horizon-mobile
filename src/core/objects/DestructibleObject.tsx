@@ -7,40 +7,28 @@ interface DestructibleObjectProps {
     id: string;
     position: [number, number, number];
     type: 'glass' | 'ice';
+    scale?: number;
     onHit: (id: string) => void;
 }
 
-export const DestructibleObject = ({ id, position, type, onHit }: DestructibleObjectProps) => {
+export const DestructibleObject = ({ id, position, type, scale = 1, onHit }: DestructibleObjectProps) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const materialColor = type === 'glass' ? '#aaddff' : '#ffffff';
 
     useFrame(() => {
         if (!meshRef.current) return;
 
-        // Simple Collision Logic
-        // Check Z distance
         const playerZ = gameStore.playerZ;
         const myZ = position[2];
+        const myLane = Math.round(position[0] / 2);
 
-        // Actually, coordinate system: Player starts 0, moves -Z. Objects are at -10, -20...
-        // so myZ < playerZ check. 
-        // distance: abs(myZ - playerZ).
+        // Adjust collision window for scale
+        const collisionZ = 1.0 * scale;
 
-        // Collision Window: when object is slightly in front of player
-        // Player is at Z, Object is at Z_obj. Player moving -Z.
-        // If Abs(PlayerZ - ObjectZ) < 1.0 AND PlayerLane == ObjectLane
-
-        // Lane check
-        const myLane = Math.round(position[0] / 2); // Lane width 2.
-
-        if (!gameStore.isGameOver && Math.abs(playerZ - myZ) < 1.0 && gameStore.playerLane === myLane) {
-            // In range.
-            // Check if attacking
+        if (!gameStore.isGameOver && Math.abs(playerZ - myZ) < collisionZ && gameStore.playerLane === myLane) {
             if (gameStore.isAttacking) {
-                // HIT!
                 onHit(id);
             } else if (playerZ < myZ) {
-                // CRASH! If player has reached the object and is NOT attacking
                 gameStore.isGameOver = true;
                 import('../store/GameStore').then(m => m.notifyStoreUpdate());
             }
@@ -49,19 +37,21 @@ export const DestructibleObject = ({ id, position, type, onHit }: DestructibleOb
 
     const materialProxy = useMemo(() => (
         <meshPhysicalMaterial
-            color={materialColor}
-            transmission={0.9} // Glass logic
+            color={gameStore.isFever ? (type === 'glass' ? '#ff00ff' : '#ffff00') : materialColor}
+            transmission={0.9}
             opacity={1}
-            metalness={0}
+            metalness={0.5}
             roughness={0}
             ior={1.5}
             thickness={2}
             transparent
+            emissive={gameStore.isFever ? '#ffffff' : '#000000'}
+            emissiveIntensity={gameStore.isFever ? 0.5 : 0}
         />
-    ), [type]);
+    ), [type, gameStore.isFever]);
 
     return (
-        <mesh ref={meshRef} position={position}>
+        <mesh ref={meshRef} position={position} scale={[scale, scale, 1]}>
             <boxGeometry args={[1.5, 2, 0.2]} />
             {materialProxy}
         </mesh>
