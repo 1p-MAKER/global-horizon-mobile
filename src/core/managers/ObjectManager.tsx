@@ -35,7 +35,9 @@ export const ObjectManager = () => {
         // 1. Spawning
         const playerZ = gameStore.playerZ;
         if (playerZ < lastSpawnZ.current + SPAWN_DISTANCE) {
-            const newZ = lastSpawnZ.current - SPAWN_INTERVAL;
+            // Triple density during fever (interval / 3)
+            const interval = gameStore.isFever ? SPAWN_INTERVAL * 0.33 : SPAWN_INTERVAL;
+            const newZ = lastSpawnZ.current - interval;
             const newObj = createObject(newZ);
             setObjects(prev => [...prev, newObj]);
             lastSpawnZ.current = newZ;
@@ -102,7 +104,8 @@ export const ObjectManager = () => {
 
         // Speed increase (unless in slow mo)
         if (slowMoTimer.current <= 0) {
-            gameStore.speed += 0.05 * (gameStore.isFever ? 1.5 : 1);
+            // Double acceleration during fever (2.5x base rate)
+            gameStore.speed += 0.05 * (gameStore.isFever ? 2.5 : 1);
         }
 
         notifyStoreUpdate();
