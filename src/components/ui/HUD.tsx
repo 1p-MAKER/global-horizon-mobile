@@ -27,7 +27,7 @@ export const HUD = () => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            padding: '20px',
+            padding: '60px 20px 20px 20px',
             boxSizing: 'border-box',
             fontFamily: '"Outfit", sans-serif',
             color: 'white',
@@ -68,6 +68,7 @@ export const HUD = () => {
                 }
                 .fever-indicator {
                     position: absolute;
+                    top: 80px;
                     left: 50%;
                     transform: translateX(-50%);
                     background: #ff00ff;
