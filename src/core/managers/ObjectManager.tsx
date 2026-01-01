@@ -34,6 +34,8 @@ export const ObjectManager = () => {
     }, []);
 
     useFrame((state, delta) => {
+        if (gameStore.isPaused) return;
+
         // 1. Spawning
         const playerZ = gameStore.playerZ;
         if (playerZ < lastSpawnZ.current + SPAWN_DISTANCE) {

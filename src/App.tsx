@@ -13,9 +13,11 @@ function App() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showRanking, setShowRanking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     return subscribeToStore(() => {
+      // Game Over Sync
       if (gameStore.isGameOver !== isGameOver) {
         setIsGameOver(gameStore.isGameOver);
         if (gameStore.isGameOver) {
@@ -33,8 +35,14 @@ function App() {
           }
         }
       }
+
+      // Pause Sync
+      if (gameStore.isPaused !== isPaused) {
+        setIsPaused(gameStore.isPaused);
+      }
+
       // Sync speed to BGM tempo
-      if (isPlaying && !gameStore.isGameOver) {
+      if (isPlaying && !gameStore.isGameOver && !gameStore.isPaused) {
         // Default speed 10 = rate 1.0. Speed 20 = rate 1.2? 
         // Let's scale slightly: 1.0 + (speed - 10) * 0.02
         const rate = 1.0 + (gameStore.speed - 10) * 0.02;
@@ -43,12 +51,21 @@ function App() {
         import('./core/managers/SoundManager').then(m => m.soundManager.setBGMPlaybackRate(finalRate));
       }
     });
-  }, [isGameOver]);
+  }, [isGameOver, isPaused, isPlaying]);
+
+  const togglePause = () => {
+    gameStore.isPaused = !gameStore.isPaused;
+    setIsPaused(gameStore.isPaused);
+    if (gameStore.isPaused) {
+      import('./core/managers/SoundManager').then(m => m.soundManager.setBGMPlaybackRate(0));
+    }
+  };
 
   const startGame = () => {
     gameStore.score = 0;
     gameStore.combo = 0;
     gameStore.isFever = false;
+    gameStore.isPaused = false;
     gameStore.speed = 10;
     gameStore.playerZ = 0;
     gameStore.isGameOver = false;
@@ -119,6 +136,7 @@ function App() {
   const goHome = () => {
     setIsPlaying(false);
     setIsGameOver(false);
+    gameStore.isPaused = false;
     import('./core/managers/SoundManager').then(m => m.soundManager.stopBGM());
   };
 
@@ -128,8 +146,35 @@ function App() {
       <GameScene />
       <HUD />
 
-      {isGameOver && (
+      {/* Pause Button */}
+      {!isGameOver && (
+        <button className="pause-button" onClick={togglePause}>
+          <div className="pause-icon">
+            <div className="pause-bar"></div>
+            <div className="pause-bar"></div>
+          </div>
+        </button>
+      )}
+
+      {/* Pause Modal */}
+      {isPaused && (
         <div className="modal-overlay">
+          <div className="result-card">
+            <h2>PAUSED</h2>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '2rem' }}>
+              <button onClick={goHome} className="secondary-button">
+                HOME
+              </button>
+              <button onClick={togglePause} className="start-button">
+                RESUME
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isGameOver && (
+        <div className="modal-overlay game-over-modal">
           <div className="result-card">
             <h2>GAME OVER</h2>
             <div style={{ fontSize: '2rem', margin: '20px 0' }}>

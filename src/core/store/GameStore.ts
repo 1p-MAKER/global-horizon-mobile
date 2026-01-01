@@ -9,6 +9,7 @@ export const gameStore = {
     timeScale: 1.0,
     isFever: false,
     isGameOver: false,
+    isPaused: false,
 };
 
 // Listeners for events (like score updates) to sync with React UI

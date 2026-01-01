@@ -250,7 +250,7 @@
   }
 }
 
-/* Result Screen */
+/* Result Screen & Pause Screen */
 .modal-overlay {
   position: absolute;
   top: 0;
@@ -263,6 +263,43 @@
   justify-content: center;
   z-index: 100;
   backdrop-filter: blur(15px);
+}
+
+/* Specific class for Game Over to lift it up */
+.game-over-modal {
+  align-items: flex-start;
+  padding-top: 15vh;
+}
+
+.pause-button {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+}
+
+.pause-icon {
+  width: 14px;
+  height: 18px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.pause-bar {
+  width: 4px;
+  height: 100%;
+  background: white;
+  border-radius: 2px;
 }
 
 .result-card {

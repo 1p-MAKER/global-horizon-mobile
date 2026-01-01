@@ -74,7 +74,7 @@ export const PlayerController = () => {
     };
 
     useFrame((_state, delta) => {
-        if (!groupRef.current || gameStore.isGameOver) return;
+        if (!groupRef.current || gameStore.isGameOver || gameStore.isPaused) return;
 
         const scaledDelta = delta * gameStore.timeScale;
 
