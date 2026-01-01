@@ -10,10 +10,12 @@ interface GameObject {
     position: [number, number, number];
     type: 'glass' | 'ice';
     scale: number;
+    color?: string;
 }
 
 const SPAWN_DISTANCE = 50;
 const SPAWN_INTERVAL = 10;
+const FEVER_COLORS = ['#ff00ff', '#00ffff', '#ffff00', '#ff0055', '#55ff00'];
 
 export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
@@ -72,11 +74,19 @@ export const ObjectManager = () => {
         const lanes = [-1, 0, 1];
         const lane = lanes[Math.floor(Math.random() * lanes.length)];
         const isLarge = Math.random() > 0.8;
+
+        // Random color during Fever Mode
+        let color: string | undefined;
+        if (gameStore.isFever) {
+            color = FEVER_COLORS[Math.floor(Math.random() * FEVER_COLORS.length)];
+        }
+
         return {
             id: Math.random().toString(36).substr(2, 9),
             position: [lane * 2, isLarge ? 2 : 1, z],
             type: Math.random() > 0.5 ? 'glass' : 'ice',
-            scale: isLarge ? 2 : 1
+            scale: isLarge ? 2 : 1,
+            color
         };
     };
 
@@ -119,16 +129,17 @@ export const ObjectManager = () => {
 
         const particleCount = (obj.scale > 1.5 ? 50 : 15) * (gameStore.isFever ? 2 : 1);
 
+        // Use object color or fallback
+        const particleColor = obj.color || (obj.type === 'glass' ? '#aaddff' : '#ffffff');
+
         if (obj.type === 'glass') {
             soundManager.playGlassBreak(pitch);
-            if ((window as any).spawnShatterParticles) {
-                (window as any).spawnShatterParticles(obj.position, gameStore.isFever ? '#ff00ff' : '#aaddff', particleCount);
-            }
         } else {
             soundManager.playIceBreak(pitch);
-            if ((window as any).spawnShatterParticles) {
-                (window as any).spawnShatterParticles(obj.position, gameStore.isFever ? '#ffff00' : '#ffffff', particleCount);
-            }
+        }
+
+        if ((window as any).spawnShatterParticles) {
+            (window as any).spawnShatterParticles(obj.position, particleColor, particleCount);
         }
     };
 
@@ -142,6 +153,7 @@ export const ObjectManager = () => {
                     type={obj.type}
                     onHit={handleHit}
                     scale={obj.scale}
+                    color={obj.color}
                 />
             ))}
         </group>

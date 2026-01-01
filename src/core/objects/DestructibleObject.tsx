@@ -9,12 +9,13 @@ interface DestructibleObjectProps {
     position: [number, number, number];
     type: 'glass' | 'ice';
     scale?: number;
+    color?: string;
     onHit: (id: string) => void;
 }
 
-export const DestructibleObject = ({ id, position, type, scale = 1, onHit }: DestructibleObjectProps) => {
+export const DestructibleObject = ({ id, position, type, scale = 1, color, onHit }: DestructibleObjectProps) => {
     const meshRef = useRef<THREE.Mesh>(null);
-    const materialColor = type === 'glass' ? '#aaddff' : '#ffffff';
+    const materialColor = color || (type === 'glass' ? '#aaddff' : '#ffffff');
 
     useFrame(() => {
         if (!meshRef.current) return;
@@ -39,7 +40,7 @@ export const DestructibleObject = ({ id, position, type, scale = 1, onHit }: Des
 
     const materialProxy = useMemo(() => (
         <meshPhysicalMaterial
-            color={gameStore.isFever ? (type === 'glass' ? '#ff00ff' : '#ffff00') : materialColor}
+            color={materialColor}
             transmission={0.9}
             opacity={1}
             metalness={0.5}
@@ -47,10 +48,10 @@ export const DestructibleObject = ({ id, position, type, scale = 1, onHit }: Des
             ior={1.5}
             thickness={2}
             transparent
-            emissive={gameStore.isFever ? '#ffffff' : '#000000'}
+            emissive={color || (gameStore.isFever ? '#ffffff' : '#000000')}
             emissiveIntensity={gameStore.isFever ? 0.5 : 0}
         />
-    ), [type, gameStore.isFever]);
+    ), [type, gameStore.isFever, color]);
 
     return (
         <mesh ref={meshRef} position={position} scale={[scale, scale, 1]}>
