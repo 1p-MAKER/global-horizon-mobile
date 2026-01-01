@@ -91,6 +91,12 @@ function App() {
     )
   }
 
+  const goHome = () => {
+    setIsPlaying(false);
+    setIsGameOver(false);
+    import('./core/managers/SoundManager').then(m => m.soundManager.stopBGM());
+  };
+
   // Game Running
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -104,9 +110,14 @@ function App() {
             <div style={{ fontSize: '2rem', margin: '20px 0' }}>
               {t('score')}: {gameStore.score}
             </div>
-            <button onClick={startGame} className="start-button">
-              RETRY
-            </button>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+              <button onClick={goHome} className="secondary-button">
+                HOME
+              </button>
+              <button onClick={startGame} className="start-button">
+                RETRY
+              </button>
+            </div>
           </div>
         </div>
       )}
