@@ -3,12 +3,14 @@ import './App.css'
 import { GameScene } from './scenes/GameScene';
 import { useState, useEffect } from 'react';
 import { HUD } from './components/ui/HUD';
+import { Settings } from './components/ui/Settings';
 import { gameStore, subscribeToStore } from './core/store/GameStore';
 
 function App() {
   const { t } = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     return subscribeToStore(() => {
@@ -55,23 +57,37 @@ function App() {
   // Stylish Start Screen
   if (!isPlaying) {
     return (
-      <div className="ui-overlay" onClick={startGame}>
-        <div className="background-decor-1"></div>
-        <div className="background-decor-2"></div>
+      <>
+        <div className="ui-overlay" onClick={startGame}>
+          <button
+            className="settings-gear-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSettings(true);
+            }}
+          >
+            ⚙️
+          </button>
 
-        <div className="glass-container">
-          <div className="logo-glitch-container">
-            <h1 className="main-title">SHATTER RUSH</h1>
-            <div className="title-glow"></div>
+          <div className="background-decor-1"></div>
+          <div className="background-decor-2"></div>
+
+          <div className="glass-container">
+            <div className="logo-glitch-container">
+              <h1 className="main-title">SHATTER RUSH</h1>
+              <div className="title-glow"></div>
+            </div>
+            <p className="subtitle">ASMR DESTRUCTION ODYSSEY</p>
           </div>
-          <p className="subtitle">ASMR DESTRUCTION ODYSSEY</p>
+
+          <div className="interactive-prompt">
+            <div className="pulse-circle"></div>
+            <span className="prompt-text">PRESS TO SHATTER</span>
+          </div>
         </div>
 
-        <div className="interactive-prompt">
-          <div className="pulse-circle"></div>
-          <span className="prompt-text">PRESS TO SHATTER</span>
-        </div>
-      </div>
+        {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      </>
     )
   }
 
