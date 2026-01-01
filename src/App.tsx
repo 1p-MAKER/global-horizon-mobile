@@ -55,7 +55,7 @@ function App() {
   // Stylish Start Screen
   if (!isPlaying) {
     return (
-      <div className="ui-overlay">
+      <div className="ui-overlay" onClick={startGame}>
         <div className="background-decor-1"></div>
         <div className="background-decor-2"></div>
 
@@ -65,15 +65,12 @@ function App() {
             <div className="title-glow"></div>
           </div>
           <p className="subtitle">ASMR DESTRUCTION ODYSSEY</p>
-
-          <div className="card">
-            <button onClick={startGame} className="start-button">
-              {t('start')}
-            </button>
-          </div>
         </div>
 
-        <div className="footer-hint">TAP TO START YOUR JOURNEY</div>
+        <div className="interactive-prompt">
+          <div className="pulse-circle"></div>
+          <span className="prompt-text">PRESS TO SHATTER</span>
+        </div>
       </div>
     )
   }

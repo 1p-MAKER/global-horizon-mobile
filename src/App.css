@@ -20,6 +20,7 @@
   background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
   color: white;
   overflow: hidden;
+  cursor: pointer;
 }
 
 /* Decorative Background Elements */
@@ -61,18 +62,19 @@
 .glass-container {
   z-index: 10;
   padding: 3rem 4rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 40px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
   animation: fadeInScale 0.8s ease-out;
 }
 
 @keyframes fadeInScale {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
 
   to {
@@ -82,97 +84,145 @@
 }
 
 .main-title {
-  font-size: 4rem;
-  font-weight: 900;
+  font-size: 4.5rem;
+  font-weight: 950;
   margin: 0;
-  letter-spacing: 0.15em;
-  background: linear-gradient(to bottom, #fff 0%, #00dcb4 100%);
+  letter-spacing: 0.2em;
+  background: linear-gradient(180deg, #fff 30%, #00dcb4 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(0, 220, 180, 0.5));
+  filter: drop-shadow(0 0 20px rgba(0, 220, 180, 0.4));
 }
 
 .subtitle {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 300;
-  letter-spacing: 0.5em;
-  margin-top: 10px;
-  opacity: 0.6;
+  letter-spacing: 0.8em;
+  margin-top: 15px;
+  opacity: 0.5;
+  text-transform: uppercase;
 }
 
-.start-button {
-  margin-top: 2rem;
-  background: #00dcb4;
-  color: #000;
-  border: none;
-  padding: 1.2rem 4.5rem;
-  font-size: 1.4rem;
-  font-weight: 800;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 10px 30px rgba(0, 220, 180, 0.4);
-  letter-spacing: 0.15em;
-  position: relative;
-  overflow: hidden;
-}
-
-.start-button:hover {
-  transform: scale(1.05) translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 220, 180, 0.6);
-}
-
-.start-button:active {
-  transform: scale(0.95);
-}
-
-.footer-hint {
+/* New Interactive Prompt */
+.interactive-prompt {
   position: absolute;
-  bottom: 3rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
-  opacity: 0.4;
-  animation: blink 2s infinite;
+  bottom: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  animation: fadeInUp 1s ease-out 0.5s both;
 }
 
-@keyframes blink {
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prompt-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: #00dcb4;
+  text-shadow: 0 0 10px rgba(0, 220, 180, 0.5);
+  animation: softPulse 2s infinite;
+}
+
+.pulse-circle {
+  width: 12px;
+  height: 12px;
+  background: #00dcb4;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 15px #00dcb4;
+}
+
+.pulse-circle::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 1px solid #00dcb4;
+  border-radius: 50%;
+  animation: ripple 1.5s infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+@keyframes softPulse {
 
   0%,
   100% {
-    opacity: 0.2;
+    opacity: 0.6;
+    transform: scale(1);
   }
 
   50% {
-    opacity: 0.6;
+    opacity: 1;
+    transform: scale(1.05);
   }
 }
 
-/* Existing UI Overlays */
+/* Result Screen */
 .modal-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
 }
 
 .result-card {
-  background: rgba(26, 26, 46, 0.8);
-  padding: 3rem;
-  border-radius: 30px;
-  border: 1px solid rgba(0, 220, 180, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 3rem 5rem;
+  border-radius: 40px;
+  border: 1px solid rgba(0, 220, 180, 0.2);
   color: white;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
 }
 
-.card {
-  padding: 0;
+/* Reuse original start button style for RETRY but refined */
+.start-button {
+  background: #00dcb4;
+  color: #000;
+  border: none;
+  padding: 1rem 3.5rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 5px 20px rgba(0, 220, 180, 0.4);
+  letter-spacing: 0.1em;
+}
+
+.start-button:active {
+  transform: scale(0.95);
 }
