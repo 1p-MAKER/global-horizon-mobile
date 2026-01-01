@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { gameStore } from '../store/GameStore';
+import { gameStore, notifyStoreUpdate } from '../store/GameStore';
+import { soundManager } from '../managers/SoundManager';
 import * as THREE from 'three';
 
 interface DestructibleObjectProps {
@@ -30,7 +31,8 @@ export const DestructibleObject = ({ id, position, type, scale = 1, onHit }: Des
                 onHit(id);
             } else if (playerZ < myZ) {
                 gameStore.isGameOver = true;
-                import('../store/GameStore').then(m => m.notifyStoreUpdate());
+                soundManager.playGameOver();
+                notifyStoreUpdate();
             }
         }
     });

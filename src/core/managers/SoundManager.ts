@@ -78,6 +78,48 @@ class SoundSys {
         noise.start();
         noise.stop(t + 0.6);
     }
+
+    playGameOver() {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const t = this.ctx.currentTime;
+
+        // 1. Low Thud (Sine)
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, t);
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.8);
+
+        gain.gain.setValueAtTime(0.8, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.8);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start();
+        osc.stop(t + 0.8);
+
+        // 2. Crash Noise
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = this.createNoiseBuffer();
+        const nGain = this.ctx.createGain();
+        const nFilter = this.ctx.createBiquadFilter();
+
+        nFilter.type = "lowpass";
+        nFilter.frequency.setValueAtTime(1000, t);
+        nFilter.frequency.exponentialRampToValueAtTime(100, t + 0.5);
+
+        nGain.gain.setValueAtTime(0.5, t);
+        nGain.gain.exponentialRampToValueAtTime(0.01, t + 0.6);
+
+        noise.connect(nFilter);
+        nFilter.connect(nGain);
+        nGain.connect(this.masterGain);
+
+        noise.start();
+        noise.stop(t + 0.6);
+    }
 }
 
 export const soundManager = new SoundSys();
