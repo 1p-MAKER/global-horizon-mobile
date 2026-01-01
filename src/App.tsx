@@ -52,16 +52,28 @@ function App() {
     }
   };
 
-  // Simple Start Screen Overlay
+  // Stylish Start Screen
   if (!isPlaying) {
     return (
       <div className="ui-overlay">
-        <h1 style={{ fontSize: '3rem', marginBottom: '2rem', letterSpacing: '0.1em' }}>SHATTER RUSH</h1>
-        <div className="card">
-          <button onClick={startGame} className="start-button">
-            {t('start')}
-          </button>
+        <div className="background-decor-1"></div>
+        <div className="background-decor-2"></div>
+
+        <div className="glass-container">
+          <div className="logo-glitch-container">
+            <h1 className="main-title">SHATTER RUSH</h1>
+            <div className="title-glow"></div>
+          </div>
+          <p className="subtitle">ASMR DESTRUCTION ODYSSEY</p>
+
+          <div className="card">
+            <button onClick={startGame} className="start-button">
+              {t('start')}
+            </button>
+          </div>
         </div>
+
+        <div className="footer-hint">TAP TO START YOUR JOURNEY</div>
       </div>
     )
   }
