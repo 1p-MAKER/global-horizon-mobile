@@ -14,6 +14,18 @@ function App() {
     return subscribeToStore(() => {
       if (gameStore.isGameOver !== isGameOver) {
         setIsGameOver(gameStore.isGameOver);
+        if (gameStore.isGameOver) {
+          import('./core/managers/SoundManager').then(m => m.soundManager.stopBGM());
+        }
+      }
+      // Sync speed to BGM tempo
+      if (isPlaying && !gameStore.isGameOver) {
+        // Default speed 10 = rate 1.0. Speed 20 = rate 1.2? 
+        // Let's scale slightly: 1.0 + (speed - 10) * 0.02
+        const rate = 1.0 + (gameStore.speed - 10) * 0.02;
+        // Slow mo effect
+        const finalRate = rate * gameStore.timeScale;
+        import('./core/managers/SoundManager').then(m => m.soundManager.setBGMPlaybackRate(finalRate));
       }
     });
   }, [isGameOver]);
@@ -31,10 +43,12 @@ function App() {
       setTimeout(() => {
         setIsPlaying(true);
         setIsGameOver(false);
+        import('./core/managers/SoundManager').then(m => m.soundManager.playBGM());
       }, 10);
     } else {
       setIsPlaying(true);
       setIsGameOver(false);
+      import('./core/managers/SoundManager').then(m => m.soundManager.playBGM());
     }
   };
 
