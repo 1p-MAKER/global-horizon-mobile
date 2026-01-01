@@ -36,7 +36,9 @@ export const ObjectManager = () => {
         const playerZ = gameStore.playerZ;
         if (playerZ < lastSpawnZ.current + SPAWN_DISTANCE) {
             // Triple density during fever (interval / 3)
-            const interval = gameStore.isFever ? SPAWN_INTERVAL * 0.33 : SPAWN_INTERVAL;
+            // Safety Check: Ensure combo is actually high enough for fever density
+            const isFeverValid = gameStore.isFever && gameStore.combo >= 10;
+            const interval = isFeverValid ? SPAWN_INTERVAL * 0.33 : SPAWN_INTERVAL;
             const newZ = lastSpawnZ.current - interval;
             const newObj = createObject(newZ);
             setObjects(prev => [...prev, newObj]);

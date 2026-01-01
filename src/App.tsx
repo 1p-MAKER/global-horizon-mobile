@@ -35,6 +35,7 @@ function App() {
   const startGame = () => {
     gameStore.score = 0;
     gameStore.combo = 0;
+    gameStore.isFever = false;
     gameStore.speed = 10;
     gameStore.playerZ = 0;
     gameStore.isGameOver = false;
