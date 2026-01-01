@@ -1,0 +1,120 @@
+/* Reuse main overlay styles from Settings for consistency */
+.ranking-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.ranking-card {
+    width: 90%;
+    max-width: 450px;
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 30px;
+    border: 1px solid rgba(0, 220, 180, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+.ranking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ranking-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffcc00;
+    /* Gold for ranking */
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ranking-content {
+    padding: 2rem;
+    color: white;
+}
+
+.ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.8rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ranking-item.top-1 {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.05));
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.ranking-item.top-2 {
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.05));
+    border-color: rgba(192, 192, 192, 0.5);
+}
+
+.ranking-item.top-3 {
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05));
+    border-color: rgba(205, 127, 50, 0.5);
+}
+
+.rank-position {
+    font-size: 1.2rem;
+    font-weight: 800;
+    width: 30px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.top-1 .rank-position {
+    color: #ffd700;
+}
+
+.top-2 .rank-position {
+    color: #c0c0c0;
+}
+
+.top-3 .rank-position {
+    color: #cd7f32;
+}
+
+.rank-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+.rank-date {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.no-data {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.3);
+    font-style: italic;
+    padding: 2rem;
+}

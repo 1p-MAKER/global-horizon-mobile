@@ -4,6 +4,7 @@ import { GameScene } from './scenes/GameScene';
 import { useState, useEffect } from 'react';
 import { HUD } from './components/ui/HUD';
 import { Settings } from './components/ui/Settings';
+import { Ranking } from './components/ui/Ranking';
 import { gameStore, subscribeToStore } from './core/store/GameStore';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showRanking, setShowRanking] = useState(false);
 
   useEffect(() => {
     return subscribeToStore(() => {
@@ -18,6 +20,17 @@ function App() {
         setIsGameOver(gameStore.isGameOver);
         if (gameStore.isGameOver) {
           import('./core/managers/SoundManager').then(m => m.soundManager.stopBGM());
+
+          // Save Score if it's high enough
+          const score = gameStore.score;
+          if (score > 0) {
+            const saved = localStorage.getItem('highScores');
+            let scores = saved ? JSON.parse(saved) : [];
+            scores.push({ score, date: Date.now() });
+            scores.sort((a: any, b: any) => b.score - a.score);
+            scores = scores.slice(0, 5); // Keep top 5
+            localStorage.setItem('highScores', JSON.stringify(scores));
+          }
         }
       }
       // Sync speed to BGM tempo
@@ -61,6 +74,16 @@ function App() {
       <>
         <div className="ui-overlay" onClick={startGame}>
           <button
+            className="ranking-trophy-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRanking(true);
+            }}
+          >
+            🏆
+          </button>
+
+          <button
             className="settings-gear-button"
             onClick={(e) => {
               e.stopPropagation();
@@ -88,6 +111,7 @@ function App() {
         </div>
 
         {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+        {showRanking && <Ranking onClose={() => setShowRanking(false)} />}
       </>
     )
   }
