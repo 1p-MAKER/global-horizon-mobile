@@ -27,7 +27,7 @@ export const HUD = () => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            padding: '60px 20px 20px 20px',
+            padding: 'max(60px, env(safe-area-inset-top) + 20px) 20px 20px 20px',
             boxSizing: 'border-box',
             fontFamily: '"Outfit", sans-serif',
             color: 'white',

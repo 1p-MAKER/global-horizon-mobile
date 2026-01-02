@@ -277,8 +277,7 @@
 
 .pause-button {
   position: absolute;
-  top: 50px;
-  /* Moved up to be in the safe zone */
+  top: calc(env(safe-area-inset-top) + 15px); /* Moved up to be in the safe zone */
   left: 50%;
   transform: translateX(-50%);
   width: 50px;
