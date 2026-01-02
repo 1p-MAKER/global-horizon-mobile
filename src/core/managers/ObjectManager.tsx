@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { DestructibleObject } from '../objects/DestructibleObject';
 import { gameStore, notifyStoreUpdate } from '../store/GameStore';
 import { soundManager } from '../managers/SoundManager';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 interface GameObject {
     id: string;
@@ -14,13 +14,14 @@ interface GameObject {
 }
 
 const SPAWN_DISTANCE = 50;
-const SPAWN_INTERVAL = 10;
+const SPAWN_INTERVAL = 12;
 const FEVER_COLORS = ['#ff00ff', '#00ffff', '#ffff00', '#ff0055', '#55ff00'];
 
 export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
+    const lastDamageTime = useRef(0);
 
     // Initial Spawn
     useEffect(() => {
@@ -41,7 +42,7 @@ export const ObjectManager = () => {
             // Triple density during fever (interval / 3)
             // Safety Check: Ensure combo is actually high enough for fever density
             const isFeverValid = gameStore.isFever && gameStore.combo >= 10;
-            const interval = isFeverValid ? SPAWN_INTERVAL * 0.33 : SPAWN_INTERVAL;
+            const interval = isFeverValid ? SPAWN_INTERVAL * 0.5 : SPAWN_INTERVAL;
             const newZ = lastSpawnZ.current - interval;
             const newObj = createObject(newZ);
             setObjects(prev => [...prev, newObj]);
@@ -60,18 +61,22 @@ export const ObjectManager = () => {
                     // Only penalize if it hasn't been processed yet (we rely on the fact it's being removed now)
                     // We treat removal as "Miss" if it wasn't destroyed
                     if (!gameStore.isFever) {
-                        gameStore.life -= 1;
-                        notifyStoreUpdate();
-                        Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
+                        const now = state.clock.elapsedTime;
+                        // 0.5s Damage Cooldown
+                        if (now - lastDamageTime.current > 0.5) {
+                            gameStore.life -= 1;
+                            lastDamageTime.current = now;
+                            notifyStoreUpdate();
+                            Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
 
-                        // Game Over Check
-                        if (gameStore.life <= 0) {
-                            gameStore.isGameOver = true;
-                            // Optionally play game over sound here or rely on App.tsx listener
-                        } else {
-                            // Reset Combo on miss
-                            gameStore.combo = 0;
-                            gameStore.isFever = false;
+                            // Game Over Check
+                            if (gameStore.life <= 0) {
+                                gameStore.isGameOver = true;
+                            } else {
+                                // Reset Combo on miss
+                                gameStore.combo = 0;
+                                gameStore.isFever = false;
+                            }
                         }
                     }
                 } else {
@@ -131,7 +136,16 @@ export const ObjectManager = () => {
 
         // Speed increase
         // Double acceleration during fever (2.5x base rate)
-        gameStore.speed += 0.05 * (gameStore.isFever ? 2.5 : 1);
+        // Cap max speed at 25
+        const acceleration = 0.05 * (gameStore.isFever ? 2.5 : 1);
+        gameStore.speed = Math.min(gameStore.speed + acceleration, 25.0);
+
+        // Life Recovery (every 50 combo)
+        if (gameStore.combo % 50 === 0 && gameStore.life < gameStore.maxLife) {
+            gameStore.life += 1;
+            // Optional: Haptic/Sound for recovery
+            Haptics.notification({ type: NotificationType.Success }).catch(() => { });
+        }
 
         notifyStoreUpdate();
 
