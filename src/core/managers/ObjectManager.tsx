@@ -21,7 +21,6 @@ export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
-    const slowMoTimer = useRef(0);
 
     // Initial Spawn
     useEffect(() => {
@@ -33,7 +32,7 @@ export const ObjectManager = () => {
         lastSpawnZ.current = -5 * SPAWN_INTERVAL;
     }, []);
 
-    useFrame((state, delta) => {
+    useFrame((state, _delta) => {
         if (gameStore.isPaused) return;
 
         // 1. Spawning
@@ -59,17 +58,6 @@ export const ObjectManager = () => {
             notifyStoreUpdate();
         }
 
-        // 4. Slow Motion Control
-        if (slowMoTimer.current > 0) {
-            slowMoTimer.current -= delta * (1 / gameStore.timeScale); // Progress timer in real-time
-            if (slowMoTimer.current <= 0) {
-                gameStore.timeScale = 1.0;
-                notifyStoreUpdate();
-            } else {
-                // Smooth transition back or stay at target scale
-                gameStore.timeScale = 0.2;
-            }
-        }
     });
 
     const createObject = (z: number): GameObject => {
@@ -109,18 +97,11 @@ export const ObjectManager = () => {
 
         gameStore.score += 100 * (gameStore.isFever ? 2 : 1) * (1 + Math.floor(gameStore.combo / 5));
 
-        // Slow motion on Large objects
-        if (obj.scale > 1.5) {
-            gameStore.timeScale = 0.2;
-            slowMoTimer.current = 0.5; // Half second slow mo
-            notifyStoreUpdate();
-        }
 
-        // Speed increase (unless in slow mo)
-        if (slowMoTimer.current <= 0) {
-            // Double acceleration during fever (2.5x base rate)
-            gameStore.speed += 0.05 * (gameStore.isFever ? 2.5 : 1);
-        }
+
+        // Speed increase
+        // Double acceleration during fever (2.5x base rate)
+        gameStore.speed += 0.05 * (gameStore.isFever ? 2.5 : 1);
 
         notifyStoreUpdate();
 
