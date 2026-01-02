@@ -68,7 +68,7 @@ export const HUD = () => {
                 }
                 .fever-indicator {
                     position: absolute;
-                    top: 80px;
+                    top: 150px;
                     left: 50%;
                     transform: translateX(-50%);
                     background: #ff00ff;
