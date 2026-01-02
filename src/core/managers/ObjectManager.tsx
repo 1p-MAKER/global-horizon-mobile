@@ -70,7 +70,10 @@ export const ObjectManager = () => {
                 const isProcessed = processedMisses.current.has(obj.id);
 
                 // A. On-Contact Collision (Same Lane)
-                if (isSameLane && distanceZ < 1.0 && !isProcessed) {
+                // Dynamic threshold based on object scale (Large objects hit sooner)
+                const collisionThreshold = Math.max(1.0, 0.5 + (0.5 * obj.scale));
+
+                if (isSameLane && distanceZ < collisionThreshold && !isProcessed) {
                     if (gameStore.isAttacking) {
                         // Successful Attack/Destruction (Ramming)
                         handleHit(obj.id);

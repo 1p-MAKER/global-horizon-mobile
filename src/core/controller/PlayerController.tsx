@@ -70,7 +70,7 @@ export const PlayerController = () => {
         // but let's simple reset it with setTimeout for now or handle in useFrame.
         // Better: let useFrame reset it after processing? Or set a frame counter.
         // Simplest: Time limit.
-        setTimeout(() => { gameStore.isAttacking = false; }, 100);
+        setTimeout(() => { gameStore.isAttacking = false; }, 250);
     };
 
     useFrame((_state, delta) => {
