@@ -277,7 +277,8 @@
 
 .pause-button {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 15px); /* Moved up to be in the safe zone */
+  top: calc(env(safe-area-inset-top) + 15px);
+  /* Moved up to be in the safe zone */
   left: 50%;
   transform: translateX(-50%);
   width: 50px;
@@ -309,12 +310,15 @@
 
 .result-card {
   background: rgba(255, 255, 255, 0.03);
-  padding: 3rem 5rem;
+  padding: 3rem 2rem;
+  width: 90%;
+  max-width: 400px;
   border-radius: 40px;
   border: 1px solid rgba(0, 220, 180, 0.2);
   color: white;
   text-align: center;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
 }
 
 /* Reuse original start button style for RETRY but refined */
