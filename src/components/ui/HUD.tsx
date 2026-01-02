@@ -7,6 +7,7 @@ export const HUD = () => {
     const [combo, setCombo] = useState(gameStore.combo);
     const [isFever, setIsFever] = useState(gameStore.isFever);
     const [life, setLife] = useState(gameStore.life);
+    const [isDamaged, setIsDamaged] = useState(false);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -15,6 +16,7 @@ export const HUD = () => {
             setCombo(gameStore.combo);
             setIsFever(gameStore.isFever);
             setLife(gameStore.life);
+            setIsDamaged(gameStore.isDamaged);
         });
     }, []);
 
@@ -97,7 +99,23 @@ export const HUD = () => {
                     from { transform: translateX(-50%) scale(1); opacity: 0.8; }
                     to { transform: translateX(-50%) scale(1.1); opacity: 1; }
                 }
+                }
             `}</style>
+
+            {/* Damage Red Flash Overlay */}
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'red',
+                opacity: isDamaged ? 0.3 : 0,
+                pointerEvents: 'none',
+                transition: 'opacity 0.1s ease-out',
+                zIndex: 10 // Ensure it's above other HUD elements if needed, or behind text? Let's put it behind text effectively by being transparent.
+                // Actually HUD container has pointerEvents: none. 
+            }} />
         </div>
     );
 };

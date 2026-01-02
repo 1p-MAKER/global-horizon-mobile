@@ -21,6 +21,12 @@ export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
+    const processedMisses = useRef(new Set<string>());
+
+    // Clear processed misses on mount/reset
+    useEffect(() => {
+        processedMisses.current.clear();
+    }, [objects]);
 
     // Initial Spawn
     useEffect(() => {
@@ -58,7 +64,7 @@ export const ObjectManager = () => {
                 if (obj.position[2] > thresholdZ) {
                     // Logic for "Missed" object
                     // We treat removal as "Miss" if it wasn't destroyed
-                    if (!gameStore.isFever) {
+                    if (!gameStore.isFever && !processedMisses.current.has(obj.id)) {
                         const now = state.clock.elapsedTime;
                         const timeSinceLastDamage = now - gameStore.lastDamageTime;
 
@@ -69,6 +75,10 @@ export const ObjectManager = () => {
                         if (timeSinceLastDamage > 1.0) {
                             gameStore.life -= 1;
                             gameStore.lastDamageTime = now; // Update immediately to block subsequent checks in this frame
+                            gameStore.isDamaged = true; // Trigger Red Flash
+                            setTimeout(() => { gameStore.isDamaged = false; notifyStoreUpdate(); }, 200);
+
+                            processedMisses.current.add(obj.id); // STRICT ID GUARD
                             notifyStoreUpdate();
 
                             Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
@@ -81,6 +91,9 @@ export const ObjectManager = () => {
                                 gameStore.combo = 0;
                                 gameStore.isFever = false;
                             }
+                        } else {
+                            // Cooldown active, BUT we must mark as processed to avoid double-hit later
+                            processedMisses.current.add(obj.id);
                         }
                     }
                 } else {
