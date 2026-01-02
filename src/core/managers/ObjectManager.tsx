@@ -54,48 +54,33 @@ export const ObjectManager = () => {
             lastSpawnZ.current = newZ;
         }
 
-        // 2. Check for Misses & Cleanup
+        // 2. Collision Detection & Misses
+        const now = state.clock.elapsedTime;
+
         setObjects(prev => {
             const nextObjects: GameObject[] = [];
             const thresholdZ = playerZ + 2; // Behind player
 
             for (const obj of prev) {
-                // If object is behind player
-                if (obj.position[2] > thresholdZ) {
-                    // Logic for "Missed" object
-                    // We treat removal as "Miss" if it wasn't destroyed
-                    if (!gameStore.isFever && !processedMisses.current.has(obj.id)) {
-                        const now = state.clock.elapsedTime;
-                        const timeSinceLastDamage = now - gameStore.lastDamageTime;
+                const distanceZ = Math.abs(obj.position[2] - playerZ);
+                const isSameLane = Math.abs(obj.position[0] - gameStore.playerLane * 2) < 0.5;
 
-                        // Strict Global Cooldown Check (1.0s)
-                        // As per spec: Only apply damage if > 1.0s has passed since last damage.
-                        // This prevents multiple objects from damaging player at once, 
-                        // and prevents rapid fire damage.
-                        if (timeSinceLastDamage > 1.0) {
-                            gameStore.life -= 1;
-                            gameStore.lastDamageTime = now; // Update immediately to block subsequent checks in this frame
-                            gameStore.isDamaged = true; // Trigger Red Flash
-                            setTimeout(() => { gameStore.isDamaged = false; notifyStoreUpdate(); }, 200);
-
-                            processedMisses.current.add(obj.id); // STRICT ID GUARD
-                            notifyStoreUpdate();
-
-                            Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
-
-                            // Game Over Check
-                            if (gameStore.life <= 0) {
-                                gameStore.isGameOver = true;
-                            } else {
-                                // Reset Combo on miss
-                                gameStore.combo = 0;
-                                gameStore.isFever = false;
-                            }
-                        } else {
-                            // Cooldown active, BUT we must mark as processed to avoid double-hit later
-                            processedMisses.current.add(obj.id);
-                        }
+                // A. On-Contact Collision
+                // If we are in the same lane and very close in Z
+                if (isSameLane && distanceZ < 1.0 && !processedMisses.current.has(obj.id)) {
+                    const damaged = gameStore.takeDamage(now);
+                    if (damaged) {
+                        processedMisses.current.add(obj.id);
                     }
+                }
+
+                // B. Miss Detection (Object passed behind player)
+                if (obj.position[2] > thresholdZ) {
+                    if (!processedMisses.current.has(obj.id)) {
+                        gameStore.takeDamage(now);
+                        processedMisses.current.add(obj.id);
+                    }
+                    // Remove object from list regardless of damage
                 } else {
                     nextObjects.push(obj);
                 }

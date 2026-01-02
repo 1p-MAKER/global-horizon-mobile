@@ -99,7 +99,6 @@ export const HUD = () => {
                     from { transform: translateX(-50%) scale(1); opacity: 0.8; }
                     to { transform: translateX(-50%) scale(1.1); opacity: 1; }
                 }
-                }
             `}</style>
 
             {/* Damage Red Flash Overlay */}
@@ -109,12 +108,11 @@ export const HUD = () => {
                 left: 0,
                 width: '100%',
                 height: '100%',
-                backgroundColor: 'red',
-                opacity: isDamaged ? 0.3 : 0,
+                backgroundColor: 'rgba(255, 0, 0, 0.4)',
+                opacity: isDamaged ? 1 : 0,
                 pointerEvents: 'none',
-                transition: 'opacity 0.1s ease-out',
-                zIndex: 10 // Ensure it's above other HUD elements if needed, or behind text? Let's put it behind text effectively by being transparent.
-                // Actually HUD container has pointerEvents: none. 
+                transition: 'opacity 0.05s ease-out',
+                zIndex: 999
             }} />
         </div>
     );
