@@ -62,21 +62,29 @@ export const ObjectManager = () => {
                     // We treat removal as "Miss" if it wasn't destroyed
                     if (!gameStore.isFever) {
                         const now = state.clock.elapsedTime;
+                        const timeSinceLastDamage = now - lastDamageTime.current;
+
                         // 0.5s Damage Cooldown
-                        if (now - lastDamageTime.current > 0.5) {
+                        if (timeSinceLastDamage > 0.5) {
+                            console.log(`[Damage Taken] Life: ${gameStore.life} -> ${gameStore.life - 1}, Time: ${now.toFixed(2)}, Last: ${lastDamageTime.current.toFixed(2)}`);
+
                             gameStore.life -= 1;
                             lastDamageTime.current = now;
                             notifyStoreUpdate();
+
                             Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
 
                             // Game Over Check
                             if (gameStore.life <= 0) {
+                                console.log("[Game Over] Life reached 0");
                                 gameStore.isGameOver = true;
                             } else {
                                 // Reset Combo on miss
                                 gameStore.combo = 0;
                                 gameStore.isFever = false;
                             }
+                        } else {
+                            console.log(`[Damage Ignored] Cooldown active. Delta: ${timeSinceLastDamage.toFixed(3)}`);
                         }
                     }
                 } else {
