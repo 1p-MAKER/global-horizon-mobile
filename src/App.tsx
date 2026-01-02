@@ -70,6 +70,7 @@ function App() {
     gameStore.playerZ = 0;
     gameStore.isGameOver = false;
     gameStore.life = 3;
+    gameStore.lastDamageTime = -100;
 
     // Remount strategy: set playing to false then true
     if (isPlaying) {

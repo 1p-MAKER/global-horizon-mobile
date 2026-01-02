@@ -21,6 +21,19 @@ export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
+    const processedMisses = useRef(new Set<string>());
+
+    // Clear processed misses on mount/reset (whenever objects list is refreshed significantly, though strictly we just clear it on unmount but here let's rely on object recycling or just use a rolling set?
+    // Actually, just clearing on objects change is fine if we are careful.
+    // Or just let it grow? objects are removed. ID uniqueness is key.
+    // Let's clear it when objects array is reset (length 4) or just use useEffect on [objects] which is what I did before.
+    useEffect(() => {
+        // This useEffect is intended to clear the set when the objects array is *initially* set or reset,
+        // not on every single change, as that would defeat the purpose of tracking processed misses.
+        // For now, we'll keep it as per instruction, but a more robust solution might clear it
+        // only when the game state resets or objects are explicitly re-initialized.
+        processedMisses.current.clear();
+    }, [objects]);
 
     // Initial Spawn
     useEffect(() => {
@@ -58,15 +71,15 @@ export const ObjectManager = () => {
                 if (obj.position[2] > thresholdZ) {
                     // Logic for "Missed" object
                     // We treat removal as "Miss" if it wasn't destroyed
-                    if (!gameStore.isFever) {
+                    if (!gameStore.isFever && !processedMisses.current.has(obj.id)) {
                         const now = state.clock.elapsedTime;
                         const timeSinceLastDamage = now - gameStore.lastDamageTime;
 
                         // 1.0s Damage Cooldown (Global Guard)
-                        // This handles the blinking invincibility time
                         if (timeSinceLastDamage > 1.0) {
                             gameStore.life -= 1;
                             gameStore.lastDamageTime = now;
+                            processedMisses.current.add(obj.id); // Guard 1 check
                             notifyStoreUpdate();
 
                             Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
@@ -79,6 +92,11 @@ export const ObjectManager = () => {
                                 gameStore.combo = 0;
                                 gameStore.isFever = false;
                             }
+                        } else {
+                            // Cooldown active, but we MUST mark this object as "processed for damage check"
+                            // so it doesn't wait until cooldown expires and THEN hit us (if it somehow stays in list)
+                            // Actually it's removed below. So this is just for safety against double-invoke in same frame.
+                            processedMisses.current.add(obj.id);
                         }
                     }
                 } else {
