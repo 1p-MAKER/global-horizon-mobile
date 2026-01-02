@@ -22,6 +22,12 @@ export const ObjectManager = () => {
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
     const lastDamageTime = useRef(0);
+    const processedMisses = useRef(new Set<string>());
+
+    // Clear processed misses after render (state updated)
+    useEffect(() => {
+        processedMisses.current.clear();
+    }, [objects]);
 
     // Initial Spawn
     useEffect(() => {
@@ -60,7 +66,7 @@ export const ObjectManager = () => {
                     // Logic for "Missed" object
                     // Only penalize if it hasn't been processed yet (we rely on the fact it's being removed now)
                     // We treat removal as "Miss" if it wasn't destroyed
-                    if (!gameStore.isFever) {
+                    if (!gameStore.isFever && !processedMisses.current.has(obj.id)) {
                         const now = state.clock.elapsedTime;
                         const timeSinceLastDamage = now - lastDamageTime.current;
 
@@ -70,6 +76,7 @@ export const ObjectManager = () => {
 
                             gameStore.life -= 1;
                             lastDamageTime.current = now;
+                            processedMisses.current.add(obj.id); // Mark as processed
                             notifyStoreUpdate();
 
                             Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
@@ -85,6 +92,7 @@ export const ObjectManager = () => {
                             }
                         } else {
                             console.log(`[Damage Ignored] Cooldown active. Delta: ${timeSinceLastDamage.toFixed(3)}`);
+                            processedMisses.current.add(obj.id); // Also mark as processed so we don't spam log
                         }
                     }
                 } else {
