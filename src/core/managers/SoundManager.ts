@@ -4,6 +4,7 @@ class SoundSys {
     private bgmNode: AudioBufferSourceNode | null = null;
     private bgmGain: GainNode | null = null;
     private technoBuffer: AudioBuffer | null = null;
+    private cachedNoiseBuffer: AudioBuffer | null = null;
 
     constructor() {
         // Initialize AudioContext
@@ -17,14 +18,17 @@ class SoundSys {
         this.technoBuffer = this.createTechnoBuffer();
     }
 
-    // Generate White Noise Buffer
-    private createNoiseBuffer(): AudioBuffer {
+    // Generate White Noise Buffer (Cached)
+    private getNoiseBuffer(): AudioBuffer {
+        if (this.cachedNoiseBuffer) return this.cachedNoiseBuffer;
+
         const bufferSize = this.ctx.sampleRate * 2.0; // 2 seconds
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
             data[i] = Math.random() * 2 - 1;
         }
+        this.cachedNoiseBuffer = buffer;
         return buffer;
     }
 
@@ -157,7 +161,7 @@ class SoundSys {
         const t = this.ctx.currentTime;
 
         const noise = this.ctx.createBufferSource();
-        noise.buffer = this.createNoiseBuffer();
+        noise.buffer = this.getNoiseBuffer();
 
         const gain = this.ctx.createGain();
         // Envelope: Sharp attack, fast decay
@@ -186,7 +190,7 @@ class SoundSys {
 
         const t = this.ctx.currentTime;
         const noise = this.ctx.createBufferSource();
-        noise.buffer = this.createNoiseBuffer();
+        noise.buffer = this.getNoiseBuffer();
 
         const gain = this.ctx.createGain();
         // Envelope: Slower attack/decay than glass
@@ -231,7 +235,7 @@ class SoundSys {
 
         // 2. Crash Noise
         const noise = this.ctx.createBufferSource();
-        noise.buffer = this.createNoiseBuffer();
+        noise.buffer = this.getNoiseBuffer();
         const nGain = this.ctx.createGain();
         const nFilter = this.ctx.createBiquadFilter();
 
