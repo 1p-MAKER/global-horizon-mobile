@@ -72,8 +72,6 @@ export const ObjectManager = () => {
 
                         // 0.5s Damage Cooldown
                         if (timeSinceLastDamage > 0.5) {
-                            console.log(`[Damage Taken] Life: ${gameStore.life} -> ${gameStore.life - 1}, Time: ${now.toFixed(2)}, Last: ${lastDamageTime.current.toFixed(2)}`);
-
                             gameStore.life -= 1;
                             lastDamageTime.current = now;
                             processedMisses.current.add(obj.id); // Mark as processed
@@ -83,7 +81,6 @@ export const ObjectManager = () => {
 
                             // Game Over Check
                             if (gameStore.life <= 0) {
-                                console.log("[Game Over] Life reached 0");
                                 gameStore.isGameOver = true;
                             } else {
                                 // Reset Combo on miss
@@ -91,7 +88,6 @@ export const ObjectManager = () => {
                                 gameStore.isFever = false;
                             }
                         } else {
-                            console.log(`[Damage Ignored] Cooldown active. Delta: ${timeSinceLastDamage.toFixed(3)}`);
                             processedMisses.current.add(obj.id); // Also mark as processed so we don't spam log
                         }
                     }
