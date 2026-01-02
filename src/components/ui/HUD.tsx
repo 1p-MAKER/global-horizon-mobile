@@ -6,6 +6,7 @@ export const HUD = () => {
     const [score, setScore] = useState(gameStore.score);
     const [combo, setCombo] = useState(gameStore.combo);
     const [isFever, setIsFever] = useState(gameStore.isFever);
+    const [life, setLife] = useState(gameStore.life);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -13,6 +14,7 @@ export const HUD = () => {
             setScore(gameStore.score);
             setCombo(gameStore.combo);
             setIsFever(gameStore.isFever);
+            setLife(gameStore.life);
         });
     }, []);
 
@@ -33,7 +35,7 @@ export const HUD = () => {
             color: 'white',
             textShadow: '0 2px 4px rgba(0,0,0,0.5)'
         }}>
-            {/* Top Bar: Score */}
+            {/* Top Bar: Score & Life */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -42,6 +44,18 @@ export const HUD = () => {
                 <div style={{ textAlign: 'left' }}>
                     <div style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase' }}>{t('score')}</div>
                     <div style={{ fontSize: '2rem', fontWeight: 800 }}>{score.toLocaleString()}</div>
+
+                    {/* Life Hearts */}
+                    <div style={{ marginTop: '5px', fontSize: '1.2rem' }}>
+                        {[...Array(3)].map((_, i) => (
+                            <span key={i} style={{
+                                color: i < life ? '#ff0055' : 'rgba(255, 255, 255, 0.2)',
+                                transition: 'all 0.3s'
+                            }}>
+                                ❤
+                            </span>
+                        ))}
+                    </div>
                 </div>
 
                 {isFever && (

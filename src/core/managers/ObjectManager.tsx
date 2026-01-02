@@ -48,8 +48,38 @@ export const ObjectManager = () => {
             lastSpawnZ.current = newZ;
         }
 
-        // 2. Cleanup 
-        setObjects(prev => prev.filter(obj => obj.position[2] < playerZ + 5));
+        // 2. Check for Misses & Cleanup
+        setObjects(prev => {
+            const nextObjects: GameObject[] = [];
+            const thresholdZ = playerZ + 2; // Behind player
+
+            for (const obj of prev) {
+                // If object is behind player
+                if (obj.position[2] > thresholdZ) {
+                    // Logic for "Missed" object
+                    // Only penalize if it hasn't been processed yet (we rely on the fact it's being removed now)
+                    // We treat removal as "Miss" if it wasn't destroyed
+                    if (!gameStore.isFever) {
+                        gameStore.life -= 1;
+                        notifyStoreUpdate();
+                        Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
+
+                        // Game Over Check
+                        if (gameStore.life <= 0) {
+                            gameStore.isGameOver = true;
+                            // Optionally play game over sound here or rely on App.tsx listener
+                        } else {
+                            // Reset Combo on miss
+                            gameStore.combo = 0;
+                            gameStore.isFever = false;
+                        }
+                    }
+                } else {
+                    nextObjects.push(obj);
+                }
+            }
+            return nextObjects;
+        });
 
         // 3. Combo Decay
         if (state.clock.elapsedTime - lastHitTime.current > 2.0 && gameStore.combo > 0) {
