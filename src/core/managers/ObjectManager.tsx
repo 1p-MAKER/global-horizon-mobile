@@ -77,9 +77,20 @@ export const ObjectManager = () => {
 
                 // B. Miss Detection (Object in SAME LANE passed behind player)
                 if (obj.position[2] > thresholdZ) {
+                    // Logic: If object passed behind us, we missed destroying it.
+                    // REVISED RULE: Miss does NOT cause damage. Only Collision does.
+                    // Just mark as processed so we don't track it anymore.
                     if (isSameLane && !isProcessed) {
-                        gameStore.takeDamage(now);
-                        processedMisses.current.add(obj.id); // Mark as processed ALWAYS
+                        // gameStore.takeDamage(now); // REMOVED: No damage on miss
+                        processedMisses.current.add(obj.id);
+
+                        // Reset Combo on miss (Optional? User didn't complain about combo)
+                        // Let's keep combo reset as a penalty for not destroying, but NO damage.
+                        if (!gameStore.isFever) {
+                            gameStore.combo = 0;
+                            gameStore.isFever = false;
+                            notifyStoreUpdate();
+                        }
                     }
                     // Remove object from active list
                 } else {
