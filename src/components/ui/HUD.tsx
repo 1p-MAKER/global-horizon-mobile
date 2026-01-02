@@ -48,11 +48,11 @@ export const HUD = () => {
                     <div style={{ fontSize: '2rem', fontWeight: 800 }}>{score.toLocaleString()}</div>
 
                     {/* Life Hearts */}
-                    <div style={{ marginTop: '5px', fontSize: '1.2rem' }}>
+                    <div style={{ marginTop: '5px', fontSize: '1.5rem', display: 'flex', gap: '5px' }}>
                         {[...Array(3)].map((_, i) => (
                             <span key={i} style={{
-                                color: i < life ? '#ff0055' : 'rgba(255, 255, 255, 0.2)',
-                                transition: 'all 0.3s'
+                                color: i < life ? '#ff0055' : 'rgba(255, 255, 255, 0.1)',
+                                filter: i < life ? 'drop-shadow(0 0 5px #ff0055)' : 'none'
                             }}>
                                 ❤
                             </span>

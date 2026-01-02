@@ -23,11 +23,6 @@ export const ObjectManager = () => {
     const lastHitTime = useRef(0);
     const processedMisses = useRef(new Set<string>());
 
-    // Clear processed misses on mount/reset
-    useEffect(() => {
-        processedMisses.current.clear();
-    }, [objects]);
-
     // Initial Spawn
     useEffect(() => {
         const initialObjs: GameObject[] = [];
@@ -36,10 +31,16 @@ export const ObjectManager = () => {
         }
         setObjects(initialObjs);
         lastSpawnZ.current = -5 * SPAWN_INTERVAL;
+        processedMisses.current.clear();
     }, []);
 
     useFrame((state, _delta) => {
         if (gameStore.isPaused) return;
+
+        // Reset guards on game start/loop
+        if (gameStore.playerZ > -1 && processedMisses.current.size > 0) {
+            processedMisses.current.clear();
+        }
 
         // 1. Spawning
         const playerZ = gameStore.playerZ;
@@ -65,22 +66,22 @@ export const ObjectManager = () => {
                 const distanceZ = Math.abs(obj.position[2] - playerZ);
                 const isSameLane = Math.abs(obj.position[0] - gameStore.playerLane * 2) < 0.5;
 
-                // A. On-Contact Collision
-                // If we are in the same lane and very close in Z
-                if (isSameLane && distanceZ < 1.0 && !processedMisses.current.has(obj.id)) {
-                    const damaged = gameStore.takeDamage(now);
-                    if (damaged) {
-                        processedMisses.current.add(obj.id);
-                    }
+                // Condition: Has this object already been "dealt with" (hit or missed)?
+                const isProcessed = processedMisses.current.has(obj.id);
+
+                // A. On-Contact Collision (Same Lane)
+                if (isSameLane && distanceZ < 1.0 && !isProcessed) {
+                    gameStore.takeDamage(now);
+                    processedMisses.current.add(obj.id); // Mark as processed ALWAYS
                 }
 
-                // B. Miss Detection (Object passed behind player)
+                // B. Miss Detection (Object in SAME LANE passed behind player)
                 if (obj.position[2] > thresholdZ) {
-                    if (!processedMisses.current.has(obj.id)) {
+                    if (isSameLane && !isProcessed) {
                         gameStore.takeDamage(now);
-                        processedMisses.current.add(obj.id);
+                        processedMisses.current.add(obj.id); // Mark as processed ALWAYS
                     }
-                    // Remove object from list regardless of damage
+                    // Remove object from active list
                 } else {
                     nextObjects.push(obj);
                 }
