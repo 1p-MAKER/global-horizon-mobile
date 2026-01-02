@@ -101,6 +101,16 @@ export const PlayerController = () => {
         } else {
             groupRef.current.scale.lerp(new Vector3(1, 1, 1), 10 * scaledDelta);
         }
+
+        // Damage Flashing (1.0s)
+        const timeSinceDamage = _state.clock.elapsedTime - gameStore.lastDamageTime;
+        if (timeSinceDamage < 1.0) {
+            // Flash frequency: 10Hz
+            const isVisible = Math.floor(timeSinceDamage * 20) % 2 === 0;
+            groupRef.current.visible = isVisible;
+        } else {
+            groupRef.current.visible = true;
+        }
     });
 
     return (

@@ -12,7 +12,8 @@ export const gameStore = {
     timeScale: 1.0,
     life: 3,
     maxLife: 3,
-    isAttacking: false
+    isAttacking: false,
+    lastDamageTime: 0
 };
 
 export const resetGame = () => {
@@ -27,6 +28,7 @@ export const resetGame = () => {
     gameStore.timeScale = 1.0;
     gameStore.life = 3;
     gameStore.isAttacking = false;
+    gameStore.lastDamageTime = 0;
     notifyStoreUpdate();
 };
 

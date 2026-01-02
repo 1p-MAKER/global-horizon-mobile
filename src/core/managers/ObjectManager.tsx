@@ -21,13 +21,6 @@ export const ObjectManager = () => {
     const [objects, setObjects] = useState<GameObject[]>([]);
     const lastSpawnZ = useRef(0);
     const lastHitTime = useRef(0);
-    const lastDamageTime = useRef(0);
-    const processedMisses = useRef(new Set<string>());
-
-    // Clear processed misses after render (state updated)
-    useEffect(() => {
-        processedMisses.current.clear();
-    }, [objects]);
 
     // Initial Spawn
     useEffect(() => {
@@ -64,35 +57,28 @@ export const ObjectManager = () => {
                 // If object is behind player
                 if (obj.position[2] > thresholdZ) {
                     // Logic for "Missed" object
-                    // Only penalize if it hasn't been processed yet (we rely on the fact it's being removed now)
                     // We treat removal as "Miss" if it wasn't destroyed
-                    if (!gameStore.isFever && !processedMisses.current.has(obj.id)) {
+                    if (!gameStore.isFever) {
                         const now = state.clock.elapsedTime;
-                        const timeSinceLastDamage = now - lastDamageTime.current;
+                        const timeSinceLastDamage = now - gameStore.lastDamageTime;
 
-                        // 0.5s Damage Cooldown
-                        if (timeSinceLastDamage > 0.5) {
-                            console.log(`[Damage Taken] Life: ${gameStore.life} -> ${gameStore.life - 1}, Time: ${now.toFixed(2)}, Last: ${lastDamageTime.current.toFixed(2)}`);
-
+                        // 1.0s Damage Cooldown (Global Guard)
+                        // This handles the blinking invincibility time
+                        if (timeSinceLastDamage > 1.0) {
                             gameStore.life -= 1;
-                            lastDamageTime.current = now;
-                            processedMisses.current.add(obj.id); // Mark as processed
+                            gameStore.lastDamageTime = now;
                             notifyStoreUpdate();
 
                             Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => { });
 
                             // Game Over Check
                             if (gameStore.life <= 0) {
-                                console.log("[Game Over] Life reached 0");
                                 gameStore.isGameOver = true;
                             } else {
                                 // Reset Combo on miss
                                 gameStore.combo = 0;
                                 gameStore.isFever = false;
                             }
-                        } else {
-                            console.log(`[Damage Ignored] Cooldown active. Delta: ${timeSinceLastDamage.toFixed(3)}`);
-                            processedMisses.current.add(obj.id); // Also mark as processed so we don't spam log
                         }
                     }
                 } else {
