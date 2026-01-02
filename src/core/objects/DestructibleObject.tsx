@@ -1,42 +1,21 @@
 import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { gameStore, notifyStoreUpdate } from '../store/GameStore';
-import { soundManager } from '../managers/SoundManager';
+import { gameStore } from '../store/GameStore';
 import * as THREE from 'three';
 
 interface DestructibleObjectProps {
-    id: string;
+    id: string; // Kept for ID reference if needed by key, but logic is external
     position: [number, number, number];
     type: 'glass' | 'ice';
     scale?: number;
     color?: string;
-    onHit: (id: string) => void;
+    onHit?: (id: string) => void; // Optional now as logic is external, but kept for interface compatibility
 }
 
-export const DestructibleObject = ({ id, position, type, scale = 1, color, onHit }: DestructibleObjectProps) => {
+export const DestructibleObject = ({ position, type, scale = 1, color }: DestructibleObjectProps) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const materialColor = color || (type === 'glass' ? '#aaddff' : '#ffffff');
 
-    useFrame(() => {
-        if (!meshRef.current) return;
-
-        const playerZ = gameStore.playerZ;
-        const myZ = position[2];
-        const myLane = Math.round(position[0] / 2);
-
-        // Adjust collision window for scale
-        const collisionZ = 1.0 * scale;
-
-        if (!gameStore.isGameOver && Math.abs(playerZ - myZ) < collisionZ && gameStore.playerLane === myLane) {
-            if (gameStore.isAttacking) {
-                onHit(id);
-            } else if (playerZ < myZ) {
-                gameStore.isGameOver = true;
-                soundManager.playGameOver();
-                notifyStoreUpdate();
-            }
-        }
-    });
+    // Collision logic removed: handled centrally in ObjectManager
 
     const materialProxy = useMemo(() => (
         <meshPhysicalMaterial

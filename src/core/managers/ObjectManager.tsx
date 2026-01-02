@@ -71,8 +71,17 @@ export const ObjectManager = () => {
 
                 // A. On-Contact Collision (Same Lane)
                 if (isSameLane && distanceZ < 1.0 && !isProcessed) {
-                    gameStore.takeDamage(now);
-                    processedMisses.current.add(obj.id); // Mark as processed ALWAYS
+                    if (gameStore.isAttacking) {
+                        // Successful Attack/Destruction (Ramming)
+                        handleHit(obj.id);
+                        processedMisses.current.add(obj.id);
+                    } else {
+                        // Failed to attack -> Body Slam Damage
+                        const damaged = gameStore.takeDamage(now);
+                        if (damaged) {
+                            processedMisses.current.add(obj.id);
+                        }
+                    }
                 }
 
                 // B. Miss Detection (Object in SAME LANE passed behind player)
