@@ -42,11 +42,11 @@ export const ObjectManager = () => {
             processedMisses.current.clear();
         }
 
-        // 1. Spawning
         const playerZ = gameStore.playerZ;
+        const now = state.clock.elapsedTime;
+
+        // 1. Spawning Logic
         if (playerZ < lastSpawnZ.current + SPAWN_DISTANCE) {
-            // Triple density during fever (interval / 3)
-            // Safety Check: Ensure combo is actually high enough for fever density
             const isFeverValid = gameStore.isFever && gameStore.combo >= 10;
             const interval = isFeverValid ? SPAWN_INTERVAL * 0.5 : SPAWN_INTERVAL;
             const newZ = lastSpawnZ.current - interval;
@@ -55,70 +55,68 @@ export const ObjectManager = () => {
             lastSpawnZ.current = newZ;
         }
 
-        // 2. Collision Detection & Misses
-        const now = state.clock.elapsedTime;
-
+        // 2. Main Object Loop (Movement, Collision, Cleanup)
         setObjects(prev => {
             const nextObjects: GameObject[] = [];
-            const thresholdZ = playerZ + 2; // Behind player
+            const cleanupThresholdZ = playerZ + 5; // Clean up far behind
 
             for (const obj of prev) {
-                const distanceZ = Math.abs(obj.position[2] - playerZ);
-                const isSameLane = Math.abs(obj.position[0] - gameStore.playerLane * 2) < 0.5;
-
-                // Condition: Has this object already been "dealt with" (hit or missed)?
-                const isProcessed = processedMisses.current.has(obj.id);
-
-                // A. On-Contact Collision (Same Lane)
-                // Dynamic threshold based on object scale (Large objects hit sooner)
-                const collisionThreshold = Math.max(1.0, 0.5 + (0.5 * obj.scale));
-
-                if (isSameLane && distanceZ < collisionThreshold && !isProcessed) {
-                    if (gameStore.isAttacking) {
-                        // Successful Attack/Destruction (Ramming)
-                        handleHit(obj.id);
-                        processedMisses.current.add(obj.id);
-                    } else {
-                        // Failed to attack -> Body Slam Damage
-                        const damaged = gameStore.takeDamage(now);
-                        if (damaged) {
-                            processedMisses.current.add(obj.id);
-                        }
-                    }
+                // A. Cleanup
+                if (obj.position[2] > cleanupThresholdZ) {
+                    continue;
                 }
 
-                // B. Miss Detection (Object in SAME LANE passed behind player)
-                if (obj.position[2] > thresholdZ) {
-                    // Logic: If object passed behind us, we missed destroying it.
-                    // REVISED RULE: Miss does NOT cause damage. Only Collision does.
-                    // Just mark as processed so we don't track it anymore.
-                    if (isSameLane && !isProcessed) {
-                        // gameStore.takeDamage(now); // REMOVED: No damage on miss
-                        processedMisses.current.add(obj.id);
+                // Interaction Logic
+                const isProcessed = processedMisses.current.has(obj.id);
 
-                        // Reset Combo on miss (Optional? User didn't complain about combo)
-                        // Let's keep combo reset as a penalty for not destroying, but NO damage.
-                        if (!gameStore.isFever) {
+                if (!isProcessed) {
+                    const distanceZ = Math.abs(obj.position[2] - playerZ);
+                    const isSameLane = Math.abs(obj.position[0] - gameStore.playerLane * 2) < 0.5;
+
+                    // Scale-Aware Collision Threshold
+                    const collisionThreshold = Math.max(1.0, 0.5 + (0.5 * obj.scale));
+
+                    // B. Collision (Priority 1)
+                    if (isSameLane && distanceZ < collisionThreshold) {
+                        if (gameStore.isAttacking) {
+                            // CASE: ATTACK (Success) -> DESTROY
+                            triggerDestructionEffects(obj);
+                            processedMisses.current.add(obj.id);
+                            continue; // Remove from nextObjects (Instant visual destruction)
+                        } else {
+                            // CASE: CRASH (Failure) -> DAMAGE
+                            const damaged = gameStore.takeDamage(now);
+                            if (damaged) {
+                                processedMisses.current.add(obj.id);
+                            }
+                        }
+                    }
+
+                    // C. Miss (Priority 2)
+                    else if (obj.position[2] > playerZ + 2) {
+                        // CASE: SAFE MISS (Combo Reset Only)
+                        // If Missed (valid or invalid lane), we just reset combo if not fever.
+                        // Strictly NO DAMAGE.
+                        if (!gameStore.isFever && gameStore.combo > 0) {
                             gameStore.combo = 0;
                             gameStore.isFever = false;
                             notifyStoreUpdate();
                         }
+                        processedMisses.current.add(obj.id);
                     }
-                    // Remove object from active list
-                } else {
-                    nextObjects.push(obj);
                 }
+
+                nextObjects.push(obj);
             }
             return nextObjects;
         });
 
-        // 3. Combo Decay
+        // 3. Combo Decay (Time-based reset if idle)
         if (state.clock.elapsedTime - lastHitTime.current > 2.0 && gameStore.combo > 0) {
             gameStore.combo = 0;
             gameStore.isFever = false;
             notifyStoreUpdate();
         }
-
     });
 
     const createObject = (z: number): GameObject => {
@@ -126,7 +124,6 @@ export const ObjectManager = () => {
         const lane = lanes[Math.floor(Math.random() * lanes.length)];
         const isLarge = Math.random() > 0.8;
 
-        // Random color during Fever Mode
         let color: string | undefined;
         if (gameStore.isFever) {
             color = FEVER_COLORS[Math.floor(Math.random() * FEVER_COLORS.length)];
@@ -141,16 +138,10 @@ export const ObjectManager = () => {
         };
     };
 
-    const handleHit = (id: string) => {
-        const obj = objects.find(o => o.id === id);
-        if (!obj) return;
-
-        setObjects(prev => prev.filter(o => o.id !== id));
-
+    const triggerDestructionEffects = (obj: GameObject) => {
         gameStore.combo += 1;
         lastHitTime.current = performance.now() / 1000;
 
-        // Fever check
         if (gameStore.combo >= 10 && !gameStore.isFever) {
             gameStore.isFever = true;
             Haptics.notification({ type: ImpactStyle.Heavy as any }).catch(() => { });
@@ -158,31 +149,20 @@ export const ObjectManager = () => {
 
         gameStore.score += 100 * (gameStore.isFever ? 2 : 1) * (1 + Math.floor(gameStore.combo / 5));
 
-
-
-        // Speed increase
-        // Double acceleration during fever (2.5x base rate)
-        // Cap max speed at 25
         const acceleration = 0.05 * (gameStore.isFever ? 2.5 : 1);
         gameStore.speed = Math.min(gameStore.speed + acceleration, 25.0);
 
-        // Life Recovery (every 50 combo)
         if (gameStore.combo % 50 === 0 && gameStore.life < gameStore.maxLife) {
             gameStore.life += 1;
-            // Optional: Haptic/Sound for recovery
             Haptics.notification({ type: NotificationType.Success }).catch(() => { });
         }
 
         notifyStoreUpdate();
 
-        // Haptics
         Haptics.impact({ style: obj.scale > 1.5 ? ImpactStyle.Heavy : ImpactStyle.Medium }).catch(() => { });
 
         const pitch = Math.min(1.0 + (gameStore.combo * 0.1), 3.0);
-
         const particleCount = (obj.scale > 1.5 ? 50 : 15) * (gameStore.isFever ? 2 : 1);
-
-        // Use object color or fallback
         const particleColor = obj.color || (obj.type === 'glass' ? '#aaddff' : '#ffffff');
 
         if (obj.type === 'glass') {
@@ -204,7 +184,6 @@ export const ObjectManager = () => {
                     id={obj.id}
                     position={obj.position}
                     type={obj.type}
-                    onHit={handleHit}
                     scale={obj.scale}
                     color={obj.color}
                 />
