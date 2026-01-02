@@ -277,8 +277,8 @@
 
 .pause-button {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 15px);
-  /* Moved up to be in the safe zone */
+  top: max(60px, calc(env(safe-area-inset-top) + 10px));
+  /* ensures minimum drop below notch */
   left: 50%;
   transform: translateX(-50%);
   width: 50px;
