@@ -80,7 +80,7 @@ export const ObjectManager = () => {
                     if (isSameLane && distanceZ < collisionThreshold) {
                         if (gameStore.isAttacking) {
                             // CASE: ATTACK (Success) -> DESTROY
-                            triggerDestructionEffects(obj);
+                            triggerDestructionEffects(obj, now);
                             processedMisses.current.add(obj.id);
                             continue; // Remove from nextObjects (Instant visual destruction)
                         } else {
@@ -138,9 +138,9 @@ export const ObjectManager = () => {
         };
     };
 
-    const triggerDestructionEffects = (obj: GameObject) => {
+    const triggerDestructionEffects = (obj: GameObject, now: number) => {
         gameStore.combo += 1;
-        lastHitTime.current = performance.now() / 1000;
+        lastHitTime.current = now;
 
         if (gameStore.combo >= 10 && !gameStore.isFever) {
             gameStore.isFever = true;
