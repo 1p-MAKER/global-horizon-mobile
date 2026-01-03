@@ -21,6 +21,24 @@ export const Settings = ({ onClose }: SettingsProps) => {
 
                 <div className="settings-content">
                     <div className="settings-section">
+                        <h3>遊び方</h3>
+                        <div className="guide-box">
+                            <div className="guide-item">
+                                <span className="guide-key">タップ</span>
+                                <span className="guide-desc">アタック（破壊）</span>
+                            </div>
+                            <div className="guide-item">
+                                <span className="guide-key">スワイプ</span>
+                                <span className="guide-desc">レーン移動（回避）</span>
+                            </div>
+                            <div className="guide-item">
+                                <span className="guide-key">ぶつかる</span>
+                                <span className="guide-desc">ダメージ（ー❤）</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="settings-section">
                         <h3>リンク</h3>
                         <button
                             className="link-button"

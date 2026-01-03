@@ -161,3 +161,38 @@
     font-family: 'Courier New', monospace;
     letter-spacing: 0.05em;
 }
+
+/* Guide Section */
+.guide-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.guide-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.guide-item:last-child {
+    border-bottom: none;
+}
+
+.guide-key {
+    font-weight: 800;
+    color: #00dcb4;
+    font-size: 0.9rem;
+    background: rgba(0, 220, 180, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.guide-desc {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
