@@ -27,7 +27,10 @@ function App() {
       if (gameStore.isGameOver !== isGameOver) {
         setIsGameOver(gameStore.isGameOver);
         if (gameStore.isGameOver) {
-          import('./core/managers/SoundManager').then(m => m.soundManager.stopBGM());
+          import('./core/managers/SoundManager').then(m => {
+            m.soundManager.stopBGM();
+            m.soundManager.playGameOver();
+          });
 
           // Save Score if it's high enough
           const score = gameStore.score;

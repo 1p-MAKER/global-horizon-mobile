@@ -87,6 +87,7 @@ export const ObjectManager = () => {
                             // CASE: CRASH (Failure) -> DAMAGE
                             const damaged = gameStore.takeDamage(now);
                             if (damaged) {
+                                soundManager.playDamage();
                                 processedMisses.current.add(obj.id);
                             }
                         }

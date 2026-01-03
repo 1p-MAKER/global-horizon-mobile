@@ -222,6 +222,32 @@ class SoundSys {
         noise.stop(t + 0.6);
     }
 
+    playDamage() {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const t = this.ctx.currentTime;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = this.getNoiseBuffer();
+
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        // Heavy impact sound
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(800, t);
+        filter.frequency.exponentialRampToValueAtTime(100, t + 0.4);
+
+        gain.gain.setValueAtTime(1.0, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        noise.start();
+        noise.stop(t + 0.4);
+    }
+
     playGameOver() {
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
