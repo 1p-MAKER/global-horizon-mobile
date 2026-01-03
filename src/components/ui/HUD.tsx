@@ -51,10 +51,11 @@ export const HUD = () => {
                     <div style={{ marginTop: '5px', fontSize: '1.5rem', display: 'flex', gap: '5px' }}>
                         {[0, 1, 2].map((i) => (
                             <span key={`heart-${i}-${life}`} style={{
-                                color: i < life ? '#ff0055' : 'rgba(255, 255, 255, 0.1)',
-                                filter: i < life ? 'drop-shadow(0 0 5px #ff0055)' : 'none',
-                                transition: 'color 0.2s, transform 0.2s',
-                                transform: i < life ? 'scale(1)' : 'scale(0.8)'
+                                color: '#ff0055',
+                                filter: 'drop-shadow(0 0 5px #ff0055)',
+                                opacity: i < life ? 1 : 0,
+                                transform: i < life ? 'scale(1)' : 'scale(0)',
+                                transition: 'all 0.2s ease-out'
                             }}>
                                 ❤
                             </span>
