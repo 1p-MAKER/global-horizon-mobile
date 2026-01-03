@@ -34,10 +34,20 @@ export const Settings = ({ onClose }: SettingsProps) => {
                         >
                             📄 プライバシーポリシー / 利用規約 / お問い合わせ
                         </button>
+                        <button
+                            className="link-button"
+                            onClick={() => openLink('https://scented-zinc-a47.notion.site/2d2768aba03f8041bb12dc5e71a7ceb8?pvs=74')}
+                        >
+                            📱 その他のアプリ
+                        </button>
                     </div>
 
                     <div className="settings-section">
                         <h3>バージョン情報</h3>
+                        <div className="version-info">
+                            <span className="version-label">Developer</span>
+                            <span className="version-number">Dev Cat</span>
+                        </div>
                         <div className="version-info">
                             <span className="version-label">Version</span>
                             <span className="version-number">{version}</span>
