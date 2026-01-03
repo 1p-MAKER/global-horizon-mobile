@@ -76,7 +76,9 @@ export const PlayerController = () => {
     useFrame((_state, delta) => {
         if (!groupRef.current || gameStore.isGameOver || gameStore.isPaused) return;
 
-        const scaledDelta = delta * gameStore.timeScale;
+        // Clamp delta to prevent "death spiral" or massive jumps on lag spikes
+        const safeDelta = Math.min(delta, 0.05);
+        const scaledDelta = safeDelta * gameStore.timeScale;
 
         // 1. Move Forward
         groupRef.current.position.z -= gameStore.speed * scaledDelta;
