@@ -6,6 +6,7 @@ import { HUD } from './components/ui/HUD';
 import { Settings } from './components/ui/Settings';
 import { Ranking } from './components/ui/Ranking';
 import { gameStore, subscribeToStore } from './core/store/GameStore';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 function App() {
   const { t } = useTranslation();
@@ -16,6 +17,11 @@ function App() {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    // Lock to portrait mode
+    ScreenOrientation.lock({ orientation: 'portrait' }).catch(() => {
+      // Ignore errors (e.g. running in browser)
+    });
+
     return subscribeToStore(() => {
       // Game Over Sync
       if (gameStore.isGameOver !== isGameOver) {
