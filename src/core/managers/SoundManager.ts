@@ -135,9 +135,19 @@ class SoundSys {
         this.bgmNode.start();
     }
 
+    setPaused(paused: boolean) {
+        if (paused) {
+            this.ctx.suspend().catch(() => { });
+        } else {
+            this.ctx.resume().catch(() => { });
+        }
+    }
+
     setBGMPlaybackRate(rate: number) {
         if (this.bgmNode) {
-            this.bgmNode.playbackRate.setValueAtTime(Math.max(0.5, Math.min(rate, 2.0)), this.ctx.currentTime);
+            // Allow 0 for pausing, otherwise clamp between 0.5 and 2.0
+            const finalRate = rate === 0 ? 0 : Math.max(0.5, Math.min(rate, 2.0));
+            this.bgmNode.playbackRate.setValueAtTime(finalRate, this.ctx.currentTime);
         }
     }
 

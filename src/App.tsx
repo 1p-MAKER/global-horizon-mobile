@@ -62,9 +62,7 @@ function App() {
   const togglePause = () => {
     gameStore.isPaused = !gameStore.isPaused;
     setIsPaused(gameStore.isPaused);
-    if (gameStore.isPaused) {
-      import('./core/managers/SoundManager').then(m => m.soundManager.setBGMPlaybackRate(0));
-    }
+    import('./core/managers/SoundManager').then(m => m.soundManager.setPaused(gameStore.isPaused));
   };
 
   const startGame = () => {
